@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Monitor, Laptop, Command, Check, Menu, X, Star, Shield, Zap } from 'lucide-react';
 
-const API_URL = import.meta.env.PROD ? 'https://soseditor-api-v5.loca.lt' : '';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

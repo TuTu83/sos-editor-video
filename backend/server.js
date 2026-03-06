@@ -5,17 +5,25 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('./database');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = 'sos-secret-key-change-me'; // In production use .env
+const SECRET_KEY = process.env.SECRET_KEY || 'sos-secret-key-change-me';
 
 // Middleware
-app.use(cors());
+app.use(cors()); // Allow all origins for now (Render <-> GitHub Pages)
 app.use(helmet());
 app.use(express.json());
+
+// Serve static assets if needed, but preferably use S3/CDN for production
 app.use('/assets', express.static(path.join(__dirname, '../assets')));
 app.use('/downloads', express.static(path.join(__dirname, '../downloads')));
+
+// Health Check
+app.get('/', (req, res) => {
+    res.send('S.O.S Editor API is running.');
+});
 
 // --- PUBLIC ROUTES ---
 
