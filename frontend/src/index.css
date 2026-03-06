@@ -1,0 +1,17 @@
+/* Tailwind CSS Directives - Ignore warnings about unknown at-rules */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+    @apply bg-darker text-gray-100;
+}
+
+.btn-primary {
+    @apply bg-gradient-to-r from-primary to-blue-500 text-white font-bold py-3 px-8 rounded-full hover:shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-1;
+}
+
+.glass-panel {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl;
+}

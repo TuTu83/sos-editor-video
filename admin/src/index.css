@@ -1,0 +1,21 @@
+/* Tailwind CSS Directives - Ignore warnings about unknown at-rules */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+    @apply bg-darker text-gray-100;
+}
+
+input, select, textarea {
+    @apply bg-dark border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-primary w-full;
+}
+
+.btn {
+    @apply px-4 py-2 rounded font-bold transition-colors;
+}
+
+.btn-primary {
+    @apply bg-primary text-white hover:bg-blue-600;
+}
