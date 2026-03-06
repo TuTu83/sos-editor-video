@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Monitor, Laptop, Command, Check, Menu, X, Star, Shield, Zap } from 'lucide-react';
 
+const API_URL = import.meta.env.PROD ? 'https://soseditor-api-v5.loca.lt' : '';
+
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [config, setConfig] = useState({
@@ -15,7 +17,7 @@ function App() {
 
   useEffect(() => {
     // Fetch Config
-    fetch('/api/config')
+    fetch(`${API_URL}/api/config`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.error) setConfig(prev => ({ ...prev, ...data }));
@@ -23,7 +25,7 @@ function App() {
       .catch(err => console.log('Using default config'));
 
     // Fetch Plans
-    fetch('/api/plans')
+    fetch(`${API_URL}/api/plans`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setPlans(data);
@@ -38,7 +40,7 @@ function App() {
       });
 
     // Fetch Downloads
-    fetch('/api/downloads')
+    fetch(`${API_URL}/api/downloads`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setDownloads(data);
@@ -47,7 +49,7 @@ function App() {
   }, []);
 
   const handleDownload = (os) => {
-    fetch('/api/track/download', {
+    fetch(`${API_URL}/api/track/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ os })
@@ -253,12 +255,17 @@ function App() {
       )}
 
       {/* Footer */}
-      <footer className="bg-darker border-t border-white/5 py-12">
+      <footer className="bg-darker border-t border-white/5 py-12 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
             <div className="flex justify-center items-center gap-2 mb-4 font-bold text-xl text-white">
                 <span className="text-primary">S.O.S</span> Editor
             </div>
-            <p>&copy; 2026 S.O.S Editor. Todos os direitos reservados.</p>
+            <p className="mb-4">&copy; 2026 S.O.S Editor. Todos os direitos reservados.</p>
+            <div className="flex justify-center gap-6 text-sm">
+                <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
+                <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+                <a href="./admin/" className="hover:text-primary transition-colors">Área Admin</a>
+            </div>
         </div>
       </footer>
     </div>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Settings, Download, CreditCard, LogOut, Save, Activity, Ticket, Users } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+const API_URL = import.meta.env.PROD ? 'https://soseditor-api-v5.loca.lt' : '';
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   
@@ -18,7 +20,7 @@ function Login({ setToken }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -113,7 +115,7 @@ function StatsTab({ token }) {
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
-        fetch('/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => res.json())
             .then(setStats)
             .catch(err => console.error(err));
@@ -152,7 +154,7 @@ function SettingsTab({ token }) {
     const [settings, setSettings] = useState({});
     
     useEffect(() => {
-        fetch('/api/config').then(res => res.json()).then(setSettings);
+        fetch(`${API_URL}/api/config`).then(res => res.json()).then(setSettings);
     }, []);
 
     const handleChange = (e) => {
@@ -160,7 +162,7 @@ function SettingsTab({ token }) {
     };
 
     const handleSave = () => {
-        fetch('/api/admin/settings', {
+        fetch(`${API_URL}/api/admin/settings`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(settings)
@@ -204,11 +206,11 @@ function DownloadsTab({ token }) {
     const [downloads, setDownloads] = useState([]);
 
     useEffect(() => {
-        fetch('/api/downloads').then(res => res.json()).then(setDownloads);
+        fetch(`${API_URL}/api/downloads`).then(res => res.json()).then(setDownloads);
     }, []);
 
     const handleUpdate = (dl) => {
-        fetch('/api/admin/download', {
+        fetch(`${API_URL}/api/admin/download`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(dl)
@@ -253,11 +255,11 @@ function PlansTab({ token }) {
     const [plans, setPlans] = useState([]);
 
     useEffect(() => {
-        fetch('/api/plans').then(res => res.json()).then(setPlans);
+        fetch(`${API_URL}/api/plans`).then(res => res.json()).then(setPlans);
     }, []);
 
     const handleUpdate = (plan) => {
-        fetch('/api/admin/plans', {
+        fetch(`${API_URL}/api/admin/plans`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(plan)
@@ -307,7 +309,7 @@ function CouponsTab({ token }) {
     const [newDiscount, setNewDiscount] = useState('');
 
     const fetchCoupons = () => {
-        fetch('/api/admin/coupons', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`${API_URL}/api/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => res.json())
             .then(setCoupons);
     };
@@ -316,7 +318,7 @@ function CouponsTab({ token }) {
 
     const handleAdd = () => {
         if (!newCode || !newDiscount) return;
-        fetch('/api/admin/coupons', {
+        fetch(`${API_URL}/api/admin/coupons`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ code: newCode, discount: newDiscount })
@@ -329,7 +331,7 @@ function CouponsTab({ token }) {
 
     const handleDelete = (id) => {
         if (!confirm('Tem certeza?')) return;
-        fetch(`/api/admin/coupons/${id}`, {
+        fetch(`${API_URL}/api/admin/coupons/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         }).then(fetchCoupons);
