@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Download, CreditCard, LogOut, Save, Activity, Ticket, Users } from 'lucide-react';
+import { LayoutDashboard, Settings, Download, CreditCard, LogOut, Save, Activity, Ticket, Users, Menu, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { API_URL } from './config/api';
 
@@ -37,19 +37,19 @@ function Login({ setToken }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-darker">
-      <form onSubmit={handleSubmit} className="bg-dark p-8 rounded-xl border border-white/10 w-96">
+    <div className="min-h-screen flex items-center justify-center bg-darker px-4">
+      <form onSubmit={handleSubmit} className="bg-dark p-8 rounded-xl border border-white/10 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center text-primary">Admin Login</h2>
         {error && <div className="bg-red-500/20 text-red-500 p-2 rounded mb-4 text-sm">{error}</div>}
         <div className="mb-4">
             <label className="block text-sm mb-1">Usuário</label>
-            <input type="text" value={username} onChange={e => setUsername(e.target.value)} />
+            <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" />
         </div>
         <div className="mb-6">
             <label className="block text-sm mb-1">Senha</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" />
         </div>
-        <button className="w-full bg-primary py-2 rounded font-bold hover:bg-blue-500 transition-colors">Entrar</button>
+        <button className="w-full bg-primary py-2 rounded font-bold hover:bg-blue-500 transition-colors text-white">Entrar</button>
       </form>
     </div>
   );
@@ -57,6 +57,7 @@ function Login({ setToken }) {
 
 function Dashboard({ token, setToken }) {
   const [activeTab, setActiveTab] = useState('stats');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const logout = () => {
     localStorage.removeItem('token');
@@ -76,24 +77,47 @@ function Dashboard({ token, setToken }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-darker text-white">
+    <div className="min-h-screen flex bg-darker text-white relative overflow-hidden">
+        {/* Mobile Header */}
+        <div className="md:hidden absolute top-0 left-0 right-0 h-16 bg-dark border-b border-white/10 flex items-center justify-between px-4 z-20">
+            <div className="text-xl font-bold text-primary">Painel Admin</div>
+            <button onClick={() => setIsSidebarOpen(true)} className="p-2">
+                <Menu size={24} />
+            </button>
+        </div>
+
+        {/* Sidebar Overlay */}
+        {isSidebarOpen && (
+            <div 
+                className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                onClick={() => setIsSidebarOpen(false)}
+            />
+        )}
+
         {/* Sidebar */}
-        <div className="w-64 bg-dark border-r border-white/10 p-6 flex flex-col">
-            <div className="text-2xl font-bold mb-10 text-primary">Painel Admin</div>
+        <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-dark border-r border-white/10 p-6 flex flex-col transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="flex justify-between items-center mb-10">
+                <div className="text-2xl font-bold text-primary">Painel Admin</div>
+                <button onClick={() => setIsSidebarOpen(false)} className="md:hidden">
+                    <X size={24} />
+                </button>
+            </div>
+            
             <nav className="flex-1 space-y-2">
-                <NavBtn icon={<LayoutDashboard size={20}/>} label="Estatísticas" active={activeTab==='stats'} onClick={()=>setActiveTab('stats')} />
-                <NavBtn icon={<Settings size={20}/>} label="Configurações" active={activeTab==='settings'} onClick={()=>setActiveTab('settings')} />
-                <NavBtn icon={<Download size={20}/>} label="Downloads" active={activeTab==='downloads'} onClick={()=>setActiveTab('downloads')} />
-                <NavBtn icon={<CreditCard size={20}/>} label="Planos & Preços" active={activeTab==='plans'} onClick={()=>setActiveTab('plans')} />
-                <NavBtn icon={<Ticket size={20}/>} label="Cupons" active={activeTab==='coupons'} onClick={()=>setActiveTab('coupons')} />
-                <NavBtn icon={<Users size={20}/>} label="Usuários" active={activeTab==='users'} onClick={()=>setActiveTab('users')} />
+                <NavBtn icon={<LayoutDashboard size={20}/>} label="Estatísticas" active={activeTab==='stats'} onClick={()=>{setActiveTab('stats'); setIsSidebarOpen(false);}} />
+                <NavBtn icon={<Settings size={20}/>} label="Configurações" active={activeTab==='settings'} onClick={()=>{setActiveTab('settings'); setIsSidebarOpen(false);}} />
+                <NavBtn icon={<Download size={20}/>} label="Downloads" active={activeTab==='downloads'} onClick={()=>{setActiveTab('downloads'); setIsSidebarOpen(false);}} />
+                <NavBtn icon={<CreditCard size={20}/>} label="Planos & Preços" active={activeTab==='plans'} onClick={()=>{setActiveTab('plans'); setIsSidebarOpen(false);}} />
+                <NavBtn icon={<Ticket size={20}/>} label="Cupons" active={activeTab==='coupons'} onClick={()=>{setActiveTab('coupons'); setIsSidebarOpen(false);}} />
+                <NavBtn icon={<Users size={20}/>} label="Usuários" active={activeTab==='users'} onClick={()=>{setActiveTab('users'); setIsSidebarOpen(false);}} />
             </nav>
             <button onClick={logout} className="flex items-center gap-3 p-3 text-red-400 hover:bg-white/5 rounded transition-colors mt-auto">
                 <LogOut size={20} /> Sair
             </button>
         </div>
+
         {/* Main Content */}
-        <div className="flex-1 p-8 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8 h-screen w-full">
             {renderContent()}
         </div>
     </div>
@@ -177,25 +201,25 @@ function SettingsTab({ token }) {
                 <InputGroup label="Subtítulo Hero" name="hero_subtitle" val={settings.hero_subtitle} onChange={handleChange} />
                 <InputGroup label="Logo URL" name="logo_url" val={settings.logo_url} onChange={handleChange} />
                 <InputGroup label="Email de Contato" name="contact_email" val={settings.contact_email} onChange={handleChange} />
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
                     <label>Modo Manutenção:</label>
-                    <select name="maintenance_mode" value={settings.maintenance_mode} onChange={handleChange} className="w-auto">
+                    <select name="maintenance_mode" value={settings.maintenance_mode} onChange={handleChange} className="w-full md:w-auto bg-white/5 border border-white/10 rounded p-2 text-white">
                         <option value="false">Desativado</option>
                         <option value="true">Ativado</option>
                     </select>
                 </div>
                 
                 <h3 className="text-xl font-bold mt-6 mb-4 pt-4 border-t border-white/10">Pagamentos</h3>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
                     <label>Sistema de Pagamento:</label>
-                    <select name="payment_active" value={settings.payment_active} onChange={handleChange} className="w-auto">
+                    <select name="payment_active" value={settings.payment_active} onChange={handleChange} className="w-full md:w-auto bg-white/5 border border-white/10 rounded p-2 text-white">
                         <option value="false">Desativado (Modo Teste)</option>
                         <option value="true">Ativado (Produção)</option>
                     </select>
                 </div>
                 <InputGroup label="Chave PIX" name="pix_key" val={settings.pix_key} onChange={handleChange} />
 
-                <button onClick={handleSave} className="btn btn-primary flex items-center gap-2 mt-4"><Save size={18}/> Salvar Alterações</button>
+                <button onClick={handleSave} className="btn btn-primary flex items-center justify-center gap-2 mt-4 py-2 px-4 rounded bg-primary text-white hover:bg-blue-500 w-full md:w-auto"><Save size={18}/> Salvar Alterações</button>
             </div>
         </div>
     );
@@ -221,28 +245,28 @@ function DownloadsTab({ token }) {
             <h2 className="text-3xl font-bold mb-8">Gerenciar Downloads</h2>
             <div className="grid gap-6">
                 {downloads.map((dl, idx) => (
-                    <div key={dl.os} className="bg-dark p-6 rounded-xl border border-white/10 flex gap-4 items-end">
-                        <div className="flex-1">
+                    <div key={dl.os} className="bg-dark p-6 rounded-xl border border-white/10 flex flex-col md:flex-row gap-4 md:items-end">
+                        <div className="flex-1 w-full">
                             <label className="block text-sm text-gray-400 mb-1">Sistema ({dl.os})</label>
-                            <input disabled value={dl.os} className="opacity-50 cursor-not-allowed" />
+                            <input disabled value={dl.os} className="opacity-50 cursor-not-allowed w-full bg-white/5 border border-white/10 rounded p-2 text-white" />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                             <label className="block text-sm text-gray-400 mb-1">Versão</label>
-                            <input value={dl.version} onChange={e => {
+                            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.version} onChange={e => {
                                 const newDl = [...downloads];
                                 newDl[idx].version = e.target.value;
                                 setDownloads(newDl);
                             }} />
                         </div>
-                        <div className="flex-[2]">
+                        <div className="flex-[2] w-full">
                             <label className="block text-sm text-gray-400 mb-1">URL do Arquivo</label>
-                            <input value={dl.url} onChange={e => {
+                            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.url} onChange={e => {
                                 const newDl = [...downloads];
                                 newDl[idx].url = e.target.value;
                                 setDownloads(newDl);
                             }} />
                         </div>
-                        <button onClick={() => handleUpdate(dl)} className="btn bg-green-600 hover:bg-green-500 text-white"><Save size={18}/></button>
+                        <button onClick={() => handleUpdate(dl)} className="btn bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded w-full md:w-auto flex justify-center items-center"><Save size={18}/></button>
                     </div>
                 ))}
             </div>
@@ -270,22 +294,22 @@ function PlansTab({ token }) {
             <h2 className="text-3xl font-bold mb-8">Gerenciar Planos</h2>
             <div className="grid gap-6">
                 {plans.map((p, idx) => (
-                    <div key={p.id} className="bg-dark p-6 rounded-xl border border-white/10 flex gap-4 items-end">
-                        <div className="w-32">
+                    <div key={p.id} className="bg-dark p-6 rounded-xl border border-white/10 flex flex-col md:flex-row gap-4 md:items-end">
+                        <div className="w-full md:w-32">
                             <label className="block text-sm text-gray-400 mb-1">Nome</label>
-                            <input disabled value={p.name} className="opacity-50" />
+                            <input disabled value={p.name} className="opacity-50 w-full bg-white/5 border border-white/10 rounded p-2 text-white" />
                         </div>
-                        <div className="w-32">
+                        <div className="w-full md:w-32">
                             <label className="block text-sm text-gray-400 mb-1">Preço (R$)</label>
-                            <input type="number" step="0.01" value={p.price} onChange={e => {
+                            <input type="number" step="0.01" className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={p.price} onChange={e => {
                                 const newPlans = [...plans];
                                 newPlans[idx].price = e.target.value;
                                 setPlans(newPlans);
                             }} />
                         </div>
-                        <div className="w-32">
+                        <div className="w-full md:w-32">
                             <label className="block text-sm text-gray-400 mb-1">Status</label>
-                            <select value={p.active} onChange={e => {
+                            <select className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={p.active} onChange={e => {
                                 const newPlans = [...plans];
                                 newPlans[idx].active = parseInt(e.target.value);
                                 setPlans(newPlans);
@@ -294,7 +318,7 @@ function PlansTab({ token }) {
                                 <option value={0}>Inativo</option>
                             </select>
                         </div>
-                         <button onClick={() => handleUpdate(p)} className="btn bg-green-600 hover:bg-green-500 text-white"><Save size={18}/></button>
+                         <button onClick={() => handleUpdate(p)} className="btn bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded w-full md:w-auto flex justify-center items-center"><Save size={18}/></button>
                     </div>
                 ))}
             </div>
@@ -340,16 +364,16 @@ function CouponsTab({ token }) {
         <div>
             <h2 className="text-3xl font-bold mb-8">Gerenciar Cupons</h2>
             
-            <div className="bg-dark p-6 rounded-xl border border-white/10 mb-8 flex gap-4 items-end">
-                <div className="flex-1">
+            <div className="bg-dark p-6 rounded-xl border border-white/10 mb-8 flex flex-col md:flex-row gap-4 md:items-end">
+                <div className="flex-1 w-full">
                     <label className="block text-sm text-gray-400 mb-1">Código do Cupom</label>
-                    <input value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} placeholder="EX: PROMO10" />
+                    <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} placeholder="EX: PROMO10" />
                 </div>
-                <div className="w-32">
+                <div className="w-full md:w-32">
                     <label className="block text-sm text-gray-400 mb-1">Desconto (%)</label>
-                    <input type="number" value={newDiscount} onChange={e => setNewDiscount(e.target.value)} placeholder="10" />
+                    <input type="number" className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={newDiscount} onChange={e => setNewDiscount(e.target.value)} placeholder="10" />
                 </div>
-                <button onClick={handleAdd} className="btn btn-primary">Adicionar</button>
+                <button onClick={handleAdd} className="btn btn-primary w-full md:w-auto py-2 px-4 rounded bg-primary text-white hover:bg-blue-500">Adicionar</button>
             </div>
 
             <div className="grid gap-4">
@@ -398,7 +422,7 @@ function InputGroup({ label, name, val, onChange }) {
     return (
         <div>
             <label className="block text-sm text-gray-400 mb-1">{label}</label>
-            <input name={name} value={val || ''} onChange={onChange} />
+            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" name={name} value={val || ''} onChange={onChange} />
         </div>
     );
 }
