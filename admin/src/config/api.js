@@ -1,1 +1,1 @@
-export const API_URL = "https://sos-editor-backend.onrender.com";
+export const API_URL = "https://soseditor-api-v5.loca.lt";
