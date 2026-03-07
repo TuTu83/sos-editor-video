@@ -1,9 +1,13 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 
-// Database path
-const dbPath = path.resolve(__dirname, '../database/sos_editor.db');
+// Database path - use /tmp/database.sqlite for Render/read-only systems or local file
+const dbFile = process.env.RENDER ? '/tmp/database.sqlite' : 'database.sqlite';
+const dbPath = path.resolve(__dirname, dbFile);
+
+console.log(`Using database at: ${dbPath}`);
 
 // Connect to DB
 const db = new sqlite3.Database(dbPath, (err) => {
