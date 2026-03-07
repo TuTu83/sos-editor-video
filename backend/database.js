@@ -102,13 +102,17 @@ function initDb() {
 
         // Seed Default Downloads
         const defaultDownloads = [
-            { os: 'windows', version: '1.0.0', url: '/downloads/sos-editor-win.exe' },
+            { os: 'windows', version: '1.0.5', url: 'https://github.com/TuTu83/sos-editor-video/releases/download/V1.0.5/SOS.Editor.Setup.1.0.5.exe' },
             { os: 'mac', version: '1.0.0', url: '/downloads/sos-editor-mac.dmg' },
             { os: 'linux', version: '1.0.0', url: '/downloads/sos-editor-linux.AppImage' }
         ];
 
         defaultDownloads.forEach(d => {
-            db.run("INSERT OR IGNORE INTO downloads (os, version, url, count) VALUES (?, ?, ?, 0)", [d.os, d.version, d.url]);
+            // Check if exists, if not insert. If exists, we don't overwrite to allow admin changes.
+            // BUT for this task, since the user wants to FORCE this link and we know Render resets DB, 
+            // we will use REPLACE to ensure it takes effect on next restart.
+            db.run("REPLACE INTO downloads (os, version, url, count) VALUES (?, ?, ?, COALESCE((SELECT count FROM downloads WHERE os = ?), 0))", 
+                [d.os, d.version, d.url, d.os]);
         });
 
         // Seed Default Plans
