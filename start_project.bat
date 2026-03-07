@@ -3,9 +3,6 @@ echo ==========================================
 echo S.O.S Editor Site - Launcher
 echo ==========================================
 
-echo Starting Backend Server (Port 5000)...
-start "SOS Backend" cmd /k "cd backend && npm start"
-
 echo Starting Frontend Site (Port 3000)...
 start "SOS Frontend" cmd /k "cd frontend && npm run dev"
 
@@ -18,7 +15,7 @@ echo.
 echo Access the sites at:
 echo Frontend (Public Site): http://localhost:3000
 echo Admin Panel: http://localhost:3001
-echo Backend API: http://localhost:5000
+echo Backend API: https://sos-editor-backend.onrender.com (Remote)
 echo.
 echo Default Admin Login:
 echo User: admin

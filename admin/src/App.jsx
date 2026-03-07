@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Settings, Download, CreditCard, LogOut, Save, Activity, Ticket, Users } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { API_URL } from './config/api';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
