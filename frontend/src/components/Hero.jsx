@@ -1,21 +1,64 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Download, Play, ChevronRight, Monitor, Star } from 'lucide-react';
 import PreviewEditor from './PreviewEditor';
 
-// ... (imports remain the same)
-
-// ... (slides definition remains the same)
+const slides = [
+  {
+    id: 1,
+    title: "Edite vídeos como um profissional",
+    subtitle: "O editor mais leve e poderoso para Windows, Mac e Linux.",
+    bgGradient: "from-primary/20 via-background to-background",
+    accent: "text-primary"
+  },
+  {
+    id: 2,
+    title: "Crie conteúdo viral em minutos",
+    subtitle: "Ferramentas inteligentes que aceleram seu fluxo de trabalho.",
+    bgGradient: "from-secondary/20 via-background to-background",
+    accent: "text-secondary"
+  },
+  {
+    id: 3,
+    title: "Performance máxima no seu PC",
+    subtitle: "Otimizado para rodar suave até em computadores mais antigos.",
+    bgGradient: "from-accent/20 via-background to-background",
+    accent: "text-accent"
+  }
+];
 
 export default function Hero({ config }) {
-  // ... (state and effects remain the same)
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-      {/* ... (background and floating elements remain the same) ... */}
+      {/* Dynamic Background */}
+      <AnimatePresence mode='wait'>
+        <motion.div
+          key={currentSlide}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+          className={`absolute inset-0 bg-gradient-radial ${slides[currentSlide].bgGradient} opacity-30 -z-10`}
+        />
+      </AnimatePresence>
+
+      {/* Floating Elements */}
+      <div className="absolute top-1/4 left-10 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse-slow"></div>
+      <div className="absolute bottom-1/4 right-10 w-32 h-32 bg-secondary/10 rounded-full blur-xl animate-pulse-slow delay-1000"></div>
 
       <div className="container-custom relative z-10 grid lg:grid-cols-2 gap-12 items-center">
         {/* Text Content */}
         <div className="text-center lg:text-left">
-           {/* ... (text content remains exactly the same) ... */}
-           <motion.div
+          <motion.div
             key={currentSlide}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
