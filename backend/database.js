@@ -3,9 +3,16 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-// Database path - use /tmp/database.sqlite for Render/read-only systems or local file
-const dbFile = process.env.RENDER ? '/tmp/database.sqlite' : 'database.sqlite';
-const dbPath = path.resolve(__dirname, dbFile);
+const dbPath = (() => {
+    if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
+    if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') return '/tmp/database.sqlite';
+    return path.resolve(__dirname, 'database.sqlite');
+})();
+
+try {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+} catch (_) {
+}
 
 console.log(`Using database at: ${dbPath}`);
 
@@ -80,7 +87,7 @@ function initDb() {
             if (!row) {
                 const hash = bcrypt.hashSync('Juliano1983*', 10);
                 db.run("INSERT INTO admin (username, password) VALUES (?, ?)", ['tutupoker', hash]);
-                console.log('Default admin created: tutupoker / Juliano1983*');
+                console.log('Default admin created.');
             }
         });
 
@@ -108,11 +115,14 @@ function initDb() {
         ];
 
         defaultDownloads.forEach(d => {
-            // Check if exists, if not insert. If exists, we don't overwrite to allow admin changes.
-            // BUT for this task, since the user wants to FORCE this link and we know Render resets DB, 
-            // we will use REPLACE to ensure it takes effect on next restart.
-            db.run("REPLACE INTO downloads (os, version, url, count) VALUES (?, ?, ?, COALESCE((SELECT count FROM downloads WHERE os = ?), 0))", 
-                [d.os, d.version, d.url, d.os]);
+            db.run(
+                `INSERT INTO downloads (os, version, url, count)
+                 VALUES (?, ?, ?, 0)
+                 ON CONFLICT(os) DO UPDATE SET
+                   version = excluded.version,
+                   url = excluded.url`,
+                [d.os, d.version, d.url]
+            );
         });
 
         // Seed Default Plans

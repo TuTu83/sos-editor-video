@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sos-secret-key-change-me';
 
 // Middleware
-app.use(cors()); // Allow all origins for now (Render <-> GitHub Pages)
+app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
@@ -202,6 +202,10 @@ app.delete('/api/admin/coupons/:id', authenticateToken, (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

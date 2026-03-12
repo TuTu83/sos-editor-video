@@ -15,7 +15,7 @@ echo.
 echo Access the sites at:
 echo Frontend (Public Site): http://localhost:3000
 echo Admin Panel: http://localhost:3001
-echo Backend API: https://sos-editor-backend.onrender.com (Remote)
+echo Backend API: https://sos-editor-video-production.up.railway.app (Railway)
 echo.
 echo Default Admin Login:
 echo User: admin
