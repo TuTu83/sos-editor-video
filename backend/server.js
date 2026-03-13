@@ -3,13 +3,19 @@ const cors = require('cors');
 const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const db = require('./database');
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sos-secret-key-change-me';
+
+let db = null;
+try {
+    db = require('./database');
+} catch (err) {
+    console.error('Database unavailable:', err && err.message ? err.message : err);
+}
 
 // Middleware
 app.use(cors());
@@ -25,10 +31,15 @@ app.get('/', (req, res) => {
     res.send('S.O.S Editor API is running.');
 });
 
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
+});
+
 // --- PUBLIC ROUTES ---
 
 // Get Site Config & Content
 app.get('/api/config', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     db.all("SELECT key, value FROM settings", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         const config = {};
@@ -39,6 +50,7 @@ app.get('/api/config', (req, res) => {
 
 // Get Plans
 app.get('/api/plans', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     db.all("SELECT * FROM plans WHERE active = 1", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
@@ -47,6 +59,7 @@ app.get('/api/plans', (req, res) => {
 
 // Get Downloads Info
 app.get('/api/downloads', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     db.all("SELECT os, version, url FROM downloads", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
@@ -55,6 +68,7 @@ app.get('/api/downloads', (req, res) => {
 
 // Track Visit
 app.post('/api/track/visit', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const today = new Date().toISOString().split('T')[0];
     db.get("SELECT * FROM visits WHERE date = ?", [today], (err, row) => {
         if (row) {
@@ -68,6 +82,7 @@ app.post('/api/track/visit', (req, res) => {
 
 // Track Download
 app.post('/api/track/download', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { os } = req.body;
     if (!os) return res.status(400).json({ error: 'OS required' });
     
@@ -79,6 +94,7 @@ app.post('/api/track/download', (req, res) => {
 
 // Check Coupon
 app.post('/api/check-coupon', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { code } = req.body;
     db.get("SELECT * FROM coupons WHERE code = ? AND active = 1", [code], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -91,6 +107,7 @@ app.post('/api/check-coupon', (req, res) => {
 
 // Login
 app.post('/api/admin/login', (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { username, password } = req.body;
     db.get("SELECT * FROM admin WHERE username = ?", [username], (err, user) => {
         if (err || !user) return res.status(401).json({ error: 'Invalid credentials' });
@@ -119,6 +136,7 @@ const authenticateToken = (req, res, next) => {
 
 // Get Dashboard Stats
 app.get('/api/admin/stats', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const stats = {};
     
     // Total Downloads
@@ -145,6 +163,7 @@ app.get('/api/admin/stats', authenticateToken, (req, res) => {
 
 // Update Settings
 app.put('/api/admin/settings', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const settings = req.body; // { key: value, ... }
     const stmt = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
     
@@ -163,6 +182,7 @@ app.put('/api/admin/settings', authenticateToken, (req, res) => {
 
 // Update Download Info
 app.put('/api/admin/download', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { os, version, url } = req.body;
     db.run("UPDATE downloads SET version = ?, url = ? WHERE os = ?", [version, url, os], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -172,6 +192,7 @@ app.put('/api/admin/download', authenticateToken, (req, res) => {
 
 // Update Plans
 app.put('/api/admin/plans', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { id, price, active } = req.body;
     db.run("UPDATE plans SET price = ?, active = ? WHERE id = ?", [price, active, id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -181,6 +202,7 @@ app.put('/api/admin/plans', authenticateToken, (req, res) => {
 
 // Manage Coupons
 app.get('/api/admin/coupons', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     db.all("SELECT * FROM coupons", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
@@ -188,6 +210,7 @@ app.get('/api/admin/coupons', authenticateToken, (req, res) => {
 });
 
 app.post('/api/admin/coupons', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { code, discount } = req.body;
     db.run("INSERT INTO coupons (code, discount, active) VALUES (?, ?, 1)", [code, discount], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -196,6 +219,7 @@ app.post('/api/admin/coupons', authenticateToken, (req, res) => {
 });
 
 app.delete('/api/admin/coupons/:id', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
     db.run("DELETE FROM coupons WHERE id = ?", [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
