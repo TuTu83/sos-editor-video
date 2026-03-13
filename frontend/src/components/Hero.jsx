@@ -27,8 +27,9 @@ const slides = [
   }
 ];
 
-export default function Hero({ config }) {
+export default function Hero({ config, version }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const versionLabel = version || '1.0.5';
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -66,7 +67,7 @@ export default function Hero({ config }) {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-gray-300 mb-6 backdrop-blur-sm">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              Versão 5.0 Disponível
+              Versão {versionLabel} Disponível
             </div>
             
             <h1 className="text-5xl md:text-7xl font-display font-bold leading-tight mb-6">

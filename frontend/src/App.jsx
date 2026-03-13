@@ -85,7 +85,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-gray-100 font-sans selection:bg-primary selection:text-white overflow-x-hidden">
       <Navbar />
-      <Hero config={config} />
+      <Hero config={config} version={downloads.find(d => d.os === 'windows')?.version} />
       <Features />
       <DownloadSection downloads={downloads} onDownload={handleDownload} />
       <Pricing plans={plans} onSelect={setSelectedPlan} />
