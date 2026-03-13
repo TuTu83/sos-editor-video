@@ -278,8 +278,12 @@ function PlansTab({ token }) {
     const [plans, setPlans] = useState([]);
 
     useEffect(() => {
-        fetch(`${API_URL}/api/plans`).then(res => res.json()).then(setPlans);
-    }, []);
+        fetch(`${API_URL}/api/admin/plans`, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) setPlans(data);
+            });
+    }, [token]);
 
     const handleUpdate = (plan) => {
         fetch(`${API_URL}/api/admin/plans`, {

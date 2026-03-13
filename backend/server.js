@@ -213,6 +213,14 @@ app.put('/api/admin/download', authenticateToken, (req, res) => {
     });
 });
 
+app.get('/api/admin/plans', authenticateToken, (req, res) => {
+    if (!db) return res.status(503).json({ error: 'Database unavailable' });
+    db.all("SELECT * FROM plans ORDER BY id ASC", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
 // Update Plans
 app.put('/api/admin/plans', authenticateToken, (req, res) => {
     if (!db) return res.status(503).json({ error: 'Database unavailable' });
