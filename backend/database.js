@@ -3,16 +3,24 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-const dbPath = (() => {
-    if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
-    if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') return '/tmp/database.sqlite';
-    return path.resolve(__dirname, 'database.sqlite');
-})();
+const candidateDbPaths = [
+    process.env.DATABASE_PATH ? path.resolve(process.env.DATABASE_PATH) : null,
+    path.resolve(__dirname, 'database.sqlite'),
+    '/tmp/database.sqlite'
+].filter(Boolean);
 
-try {
-    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-} catch (_) {
-}
+const dbPath = (() => {
+    for (const candidate of candidateDbPaths) {
+        try {
+            fs.mkdirSync(path.dirname(candidate), { recursive: true });
+            const fd = fs.openSync(candidate, 'a');
+            fs.closeSync(fd);
+            return candidate;
+        } catch (_) {
+        }
+    }
+    return candidateDbPaths[0];
+})();
 
 console.log(`Using database at: ${dbPath}`);
 

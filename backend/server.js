@@ -47,7 +47,7 @@ app.get('/favicon.ico', (req, res) => {
 
 // Get Site Config & Content
 app.get('/api/config', (req, res) => {
-    if (!db) return res.status(503).json({ error: 'Database unavailable' });
+    if (!db) return res.json({ maintenance_mode: 'true' });
     db.all("SELECT key, value FROM settings", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         const config = {};
@@ -172,20 +172,35 @@ app.get('/api/admin/stats', authenticateToken, (req, res) => {
 // Update Settings
 app.put('/api/admin/settings', authenticateToken, (req, res) => {
     if (!db) return res.status(503).json({ error: 'Database unavailable' });
-    const settings = req.body; // { key: value, ... }
+    const settings = req.body || {};
+    const entries = Object.entries(settings)
+        .filter(([key, value]) => key && value !== undefined)
+        .map(([key, value]) => [String(key), String(value)]);
+
     const stmt = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
-    
+
     db.serialize(() => {
-        db.run("BEGIN TRANSACTION");
-        for (const [key, value] of Object.entries(settings)) {
-            stmt.run(key, value);
-        }
-        db.run("COMMIT", (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
+        db.run("BEGIN IMMEDIATE TRANSACTION", (beginErr) => {
+            if (beginErr) {
+                stmt.finalize();
+                return res.status(500).json({ error: beginErr.message });
+            }
+
+            for (const [key, value] of entries) {
+                stmt.run(key, value);
+            }
+
+            db.run("COMMIT", (commitErr) => {
+                stmt.finalize();
+
+                if (commitErr) {
+                    db.run("ROLLBACK");
+                    return res.status(500).json({ error: commitErr.message });
+                }
+                res.json({ success: true });
+            });
         });
     });
-    stmt.finalize();
 });
 
 // Update Download Info
@@ -202,7 +217,9 @@ app.put('/api/admin/download', authenticateToken, (req, res) => {
 app.put('/api/admin/plans', authenticateToken, (req, res) => {
     if (!db) return res.status(503).json({ error: 'Database unavailable' });
     const { id, price, active } = req.body;
-    db.run("UPDATE plans SET price = ?, active = ? WHERE id = ?", [price, active, id], function(err) {
+    const normalizedPrice = Number.isFinite(Number(price)) ? Number(price) : price;
+    const normalizedActive = Number.isFinite(Number(active)) ? Number(active) : active;
+    db.run("UPDATE plans SET price = ?, active = ? WHERE id = ?", [normalizedPrice, normalizedActive, id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
     });
