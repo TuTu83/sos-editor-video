@@ -10,6 +10,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sos-secret-key-change-me';
 
+process.on('uncaughtException', (err) => {
+    console.error('uncaughtException:', err && err.stack ? err.stack : err);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('unhandledRejection:', err && err.stack ? err.stack : err);
+});
+
 let db = null;
 try {
     db = require('./database');
@@ -227,6 +235,7 @@ app.delete('/api/admin/coupons/:id', authenticateToken, (req, res) => {
 });
 
 if (require.main === module) {
+    console.log(`Boot: node=${process.version} port=${PORT} env=${process.env.NODE_ENV || ''} railway=${process.env.RAILWAY_ENVIRONMENT ? 'yes' : 'no'}`);
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server running on port ${PORT}`);
     });
