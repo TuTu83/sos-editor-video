@@ -12,11 +12,33 @@
 // depois recarregue a página (F5). Para remover o override:
 //   localStorage.removeItem('sos_admin_api_base_override')
 
-let API_URL_VALUE = "https://api.soseditor.com.br";
-try {
-  const override = (typeof localStorage !== 'undefined') ? localStorage.getItem('sos_admin_api_base_override') : null;
-  if (override && /^https?:\/\//i.test(override)) {
-    API_URL_VALUE = String(override).replace(/\/+$/, '');
+const STORAGE_KEY = 'sos_admin_api_base_override';
+const DEFAULT_URL = "https://api.soseditor.com.br";
+
+function readOverride() {
+  try {
+    const raw = (typeof localStorage !== 'undefined') ? localStorage.getItem(STORAGE_KEY) : null;
+    if (raw && /^https?:\/\//i.test(raw)) return String(raw).replace(/\/+$/, '');
+  } catch (_) {}
+  return null;
+}
+
+export function getApiBaseOverride() {
+  return readOverride();
+}
+export function setApiBaseOverride(url) {
+  const clean = String(url || '').trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(clean)) {
+    throw new Error("URL da API deve começar com http:// ou https://");
   }
-} catch (_) {}
-export const API_URL = API_URL_VALUE;
+  try { localStorage.setItem(STORAGE_KEY, clean); } catch (_) {}
+  return clean;
+}
+export function clearApiBaseOverride() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+}
+export function computeApiBase() {
+  return readOverride() || DEFAULT_URL;
+}
+
+export const API_URL = computeApiBase();

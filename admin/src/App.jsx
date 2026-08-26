@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard, Settings, Download, CreditCard, LogOut, Save, Activity,
-  Ticket, Users, Menu, X, Search, Ban, CheckCircle, Clock, Shield, AlertTriangle,
+  Ticket, Users, User, Menu, X, Search, Ban, CheckCircle, Clock, Shield, AlertTriangle,
   Zap, Copy, ExternalLink, Plus, Trash2, Calendar, Smartphone, Monitor,
   KeyRound, Tag
 } from 'lucide-react';
@@ -924,6 +924,63 @@ function UsersTab({ token }) {
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const safeRows = Array.isArray(rows) ? rows : [];
 
+  const isTestUser = (u) => {
+    try {
+      if ((u.email || '').endsWith('@tututhebest.com')) return true;
+      if (/^(DESKTOP_|USER_PAGOU_PIX_|NOVO_USUARIO_PIX)/.test(u.device_id || '')) return true;
+      const grantReason = (u.license && typeof u.license === 'object' && u.license.grant_reason) ? String(u.license.grant_reason) : '';
+      if (/(TESTEVITAL|Pagamento PIX recibido admin Juliano)/i.test(grantReason)) return true;
+      return false;
+    } catch { return false; }
+  };
+  const testOriginText = (u) => {
+    const parts = [];
+    if ((u.email || '').endsWith('@tututhebest.com')) parts.push('email teste @tututhebest');
+    if (/^(DESKTOP_|USER_PAGOU_PIX_|NOVO_USUARIO_PIX)/.test(u.device_id || '')) parts.push('device_id padrão teste');
+    const grantReason = (u.license && typeof u.license === 'object' && u.license.grant_reason) ? String(u.license.grant_reason) : '';
+    if (/TESTEVITAL/i.test(grantReason)) parts.push('grant cupom TESTEVITAL');
+    else if (/Pagamento PIX recibido admin Juliano/i.test(grantReason)) parts.push('grant teste pagamento PIX admin');
+    return parts.join(' + ') || 'Evidências de teste encontradas';
+  };
+  const accessTypeLabel = (u) => {
+    try {
+      const lic = u.license && typeof u.license === 'object' ? u.license : null;
+      if (u.status === 'blocked' || (lic && lic.status === 'blocked')) return { text: 'Bloqueado', cls: 'text-red-300 bg-red-500/15 border-red-400/30' };
+      if (lic && Number(lic.grant_active) === 1) return { text: 'Grant Admin', cls: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-400/30' };
+      if (lic && lic.status === 'subscription_active') return { text: 'Assinatura', cls: 'text-emerald-300 bg-emerald-500/15 border-emerald-400/30' };
+      if ((lic && lic.status === 'trial') || (u.trial_ends_at && daysBetweenIso(new Date().toISOString(), u.trial_ends_at) > 0))
+        return { text: 'Trial', cls: 'text-sky-300 bg-sky-500/15 border-sky-400/30' };
+      if ((lic && lic.status === 'trial_expired') || (u.trial_ends_at && daysBetweenIso(new Date().toISOString(), u.trial_ends_at) <= 0))
+        return { text: 'Trial Exp.', cls: 'text-amber-300 bg-amber-500/15 border-amber-400/30' };
+      if (u.plan_id === 3) return { text: 'Vitalício', cls: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-400/30' };
+      if (u.plan_id === 2) return { text: 'Mensal', cls: 'text-amber-300 bg-amber-500/15 border-amber-400/30' };
+      return { text: '—', cls: 'text-slate-300 bg-slate-500/15 border-slate-400/30' };
+    } catch { return { text: '—', cls: 'text-slate-300 bg-slate-500/15 border-slate-400/30' }; }
+  };
+  const validityDate = (u) => {
+    try {
+      const lic = u.license && typeof u.license === 'object' ? u.license : null;
+      if (u.plan_id === 3) return 'Permanente';
+      if (lic && Number(lic.grant_active) === 1 && lic.grant_expires_at) return fmtDate(lic.grant_expires_at);
+      if (u.subscription_expires_at) return fmtDate(u.subscription_expires_at);
+      if (u.trial_ends_at) return fmtDate(u.trial_ends_at);
+      return '—';
+    } catch { return '—'; }
+  };
+  const trialCell = (u) => {
+    try {
+      const lic = u.license && typeof u.license === 'object' ? u.license : null;
+      const days = Number(lic?.trial_days_left || 0) || (u.trial_ends_at ? daysBetweenIso(new Date().toISOString(), u.trial_ends_at) : 0);
+      if ((lic && lic.status === 'trial') || (u.trial_ends_at && days > 0)) {
+        return <span className="inline-flex items-center gap-1 text-sky-300 text-xs font-bold"><Clock size={12}/> Sim · {days}d</span>;
+      }
+      if ((lic && lic.status === 'trial_expired') || (u.trial_ends_at && days <= 0)) {
+        return <span className="inline-flex items-center gap-1 text-amber-300 text-xs font-bold"><AlertTriangle size={12}/> Expirado</span>;
+      }
+      return <span className="text-slate-500 text-xs">Não</span>;
+    } catch { return <span className="text-slate-500 text-xs">—</span>; }
+  };
+
   return (
     <div>
       <h2 className="text-3xl font-extrabold mb-8 tracking-tight">Usuários & Licenças</h2>
@@ -956,48 +1013,78 @@ function UsersTab({ token }) {
           <table className="w-full text-sm">
             <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
               <tr>
-                <th className="text-left p-4 font-bold">ID</th>
-                <th className="text-left p-4 font-bold">Usuário</th>
-                <th className="text-left p-4 font-bold">Plano</th>
-                <th className="text-left p-4 font-bold">Licença</th>
-                <th className="text-left p-4 font-bold">Criado</th>
-                <th className="text-right p-4 font-bold"></th>
+                <th className="text-left p-3 font-bold w-[72px]">Origem</th>
+                <th className="text-left p-3 font-bold">Email</th>
+                <th className="text-left p-3 font-bold">Device ID</th>
+                <th className="text-left p-3 font-bold">Status</th>
+                <th className="text-left p-3 font-bold">Plano</th>
+                <th className="text-left p-3 font-bold">Tipo Acesso</th>
+                <th className="text-left p-3 font-bold">Trial</th>
+                <th className="text-left p-3 font-bold">Validade</th>
+                <th className="text-left p-3 font-bold">Criado em</th>
+                <th className="text-left p-3 font-bold">Último Acesso</th>
+                <th className="text-right p-3 font-bold w-[110px]"></th>
               </tr>
             </thead>
             <tbody>
               {safeRows.length === 0 && (
-                <tr><td colSpan={6} className="p-10 text-center text-slate-500">Nenhum usuário encontrado.</td></tr>
+                <tr><td colSpan={11} className="p-10 text-center text-slate-500">Nenhum usuário encontrado.</td></tr>
               )}
-              {safeRows.map(u => (
-                <tr key={u.id} className="border-t border-white/5 hover:bg-white/[0.03]">
-                  <td className="p-4 text-slate-500 font-mono">#{u.id}</td>
-                  <td className="p-4">
-                    <div className="font-bold text-white truncate max-w-[260px]">
-                      {u.display_name || u.email || '— sem nome —'}
-                    </div>
-                    <div className="text-xs text-slate-400 truncate max-w-[260px]">
-                      {u.email ? <span className="mr-2">{u.email}</span> : null}
-                      {u.device_id ? <span className="font-mono text-[10px]">device: {String(u.device_id).slice(0,16)}…</span> : null}
-                    </div>
+              {safeRows.map(u => {
+                const t = isTestUser(u);
+                const st = accessTypeLabel(u);
+                const isBlockedRow = u.status === 'blocked' || (u.license && u.license.status === 'blocked');
+                return (
+                <tr key={u.id} className={`border-t border-white/5 hover:bg-white/[0.03] ${t ? 'bg-orange-500/[0.02]' : ''}`}>
+                  <td className="p-3 whitespace-nowrap">
+                    {t
+                      ? <span title={testOriginText(u)} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold bg-orange-500/15 border border-orange-400/40 text-orange-300">🧪 Teste</span>
+                      : <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold bg-emerald-500/10 border border-emerald-400/30 text-emerald-300">👤 Usuário</span>
+                    }
                   </td>
-                  <td className="p-4">
+                  <td className="p-3">
+                    <div className="font-bold text-white truncate max-w-[240px]">
+                      {u.email || <span className="text-slate-500 italic">— sem email —</span>}
+                    </div>
+                    {u.display_name ? <div className="text-[11px] text-slate-500 truncate max-w-[240px]">nome: {u.display_name}</div> : null}
+                  </td>
+                  <td className="p-3">
+                    {u.device_id
+                      ? <code title={String(u.device_id)} className="text-[11px] font-mono bg-black/40 border border-white/10 px-2 py-1 rounded-md text-slate-300 break-all max-w-[180px] inline-block align-middle">
+                          {String(u.device_id).length > 20 ? String(u.device_id).slice(0,10)+'…'+String(u.device_id).slice(-8) : u.device_id}
+                        </code>
+                      : <span className="text-slate-600 italic text-xs">—</span>
+                    }
+                  </td>
+                  <td className="p-3 whitespace-nowrap">
+                    {isBlockedRow
+                      ? <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10.5px] uppercase tracking-widest font-bold bg-red-500/15 border border-red-400/30 text-red-300"><Ban size={11}/> Bloqueado</span>
+                      : <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10.5px] uppercase tracking-widest font-bold bg-emerald-500/15 border border-emerald-400/30 text-emerald-300"><CheckCircle size={11}/> Ativo</span>
+                    }
+                  </td>
+                  <td className="p-3 whitespace-nowrap">
                     <PlanBadge planId={u.plan_id} type={null}/>
                   </td>
-                  <td className="p-4">
-                    <LicenseBadge license={u.license} trialEndsAt={u.trial_ends_at}/>
+                  <td className="p-3 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10.5px] tracking-widest uppercase font-bold border ${st.cls}`}>{st.text}</span>
                   </td>
-                  <td className="p-4 text-slate-400 text-xs whitespace-nowrap">
-                    {fmtDate(u.created_at)}<br/>
-                    {u.last_seen_at ? <span className="text-slate-500">último acesso {fmtDate(u.last_seen_at)}</span> : null}
+                  <td className="p-3 whitespace-nowrap">{trialCell(u)}</td>
+                  <td className="p-3 whitespace-nowrap text-xs text-slate-300 font-bold">
+                    {validityDate(u)}
                   </td>
-                  <td className="p-4 text-right whitespace-nowrap">
+                  <td className="p-3 text-slate-400 text-xs whitespace-nowrap">{fmtDate(u.created_at)}</td>
+                  <td className="p-3 text-slate-400 text-xs whitespace-nowrap">
+                    {u.last_seen_at ? fmtDate(u.last_seen_at) : <span className="text-slate-600 italic">— nunca —</span>}
+                  </td>
+                  <td className="p-3 text-right whitespace-nowrap">
                     <button onClick={() => openDetail(u)}
                       className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-sky-500/15 border border-sky-400/30 text-sky-200 hover:bg-sky-500/25 text-xs font-bold">
-                      <ExternalLink size={14}/> Detalhes
+                      <ExternalLink size={14}/> Abrir
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1042,167 +1129,340 @@ function UserDetailDrawer({ user, grants, onClose, onChangeStatus, onActivateSub
   const isBlocked = user.status === 'blocked';
   const daysFromNowTo = (iso) => iso ? daysBetweenIso(new Date().toISOString(), iso) : 0;
   const safeGrants = Array.isArray(grants) ? grants : [];
+  const activeGrant = safeGrants.find(g => Number(g.active) === 1 && daysFromNowTo(g.expires_at) > 0) || safeGrants.find(g => Number(g.active) === 1);
+
+  const isTestUserLocal = (() => {
+    try {
+      if ((user.email || '').endsWith('@tututhebest.com')) return true;
+      if (/^(DESKTOP_|USER_PAGOU_PIX_|NOVO_USUARIO_PIX)/.test(user.device_id || '')) return true;
+      const gr = safeGrants.map(g => g.reason || '').join(' ');
+      if (/(TESTEVITAL|Pagamento PIX recibido admin Juliano)/i.test(gr)) return true;
+      return false;
+    } catch { return false; }
+  })();
+  const testOriginLocal = (() => {
+    const parts = [];
+    if ((user.email || '').endsWith('@tututhebest.com')) parts.push('email teste @tututhebest');
+    if (/^(DESKTOP_|USER_PAGOU_PIX_|NOVO_USUARIO_PIX)/.test(user.device_id || '')) parts.push('device_id padrão teste');
+    const gr = safeGrants.map(g => g.reason || '').join(' ');
+    if (/TESTEVITAL/i.test(gr)) parts.push('grant cupom TESTEVITAL');
+    else if (/Pagamento PIX recibido admin Juliano/i.test(gr)) parts.push('grant teste pagamento PIX admin');
+    return parts.join(' + ') || 'Evidências de teste encontradas';
+  })();
+  const accessTypeLocal = (() => {
+    const lic = user.license && typeof user.license === 'object' ? user.license : null;
+    if (isBlocked || (lic && lic.status === 'blocked')) return { text: 'Bloqueado', cls: 'text-red-300 bg-red-500/15 border-red-400/30' };
+    if (activeGrant) return { text: 'Grant Admin', cls: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-400/30' };
+    if (lic && lic.status === 'subscription_active') return { text: 'Assinatura', cls: 'text-emerald-300 bg-emerald-500/15 border-emerald-400/30' };
+    if ((lic && lic.status === 'trial') || (user.trial_ends_at && daysFromNowTo(user.trial_ends_at) > 0))
+      return { text: 'Trial', cls: 'text-sky-300 bg-sky-500/15 border-sky-400/30' };
+    if ((lic && lic.status === 'trial_expired') || (user.trial_ends_at && daysFromNowTo(user.trial_ends_at) <= 0))
+      return { text: 'Trial Expirado', cls: 'text-amber-300 bg-amber-500/15 border-amber-400/30' };
+    if (user.plan_id === 3) return { text: 'Vitalício', cls: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-400/30' };
+    if (user.plan_id === 2) return { text: 'Mensal', cls: 'text-amber-300 bg-amber-500/15 border-amber-400/30' };
+    return { text: '—', cls: 'text-slate-300 bg-slate-500/15 border-slate-400/30' };
+  })();
+  const validityLocal = (() => {
+    if (user.plan_id === 3) return 'Permanente';
+    if (activeGrant && activeGrant.expires_at) return fmtDate(activeGrant.expires_at);
+    if (user.subscription_expires_at) return fmtDate(user.subscription_expires_at);
+    if (user.trial_ends_at) return fmtDate(user.trial_ends_at);
+    return '—';
+  })();
+  const trialDaysLocal = (() => {
+    const lic = user.license && typeof user.license === 'object' ? user.license : null;
+    const days = Number(lic?.trial_days_left || 0) || (user.trial_ends_at ? daysFromNowTo(user.trial_ends_at) : 0);
+    return days;
+  })();
+  const daysLeftTotal = (() => {
+    const d1 = activeGrant ? daysFromNowTo(activeGrant.expires_at) : 0;
+    const d2 = user.subscription_expires_at ? daysFromNowTo(user.subscription_expires_at) : 0;
+    const d3 = trialDaysLocal > 0 ? trialDaysLocal : 0;
+    return Math.max(d1, d2, d3, 0);
+  })();
+  const isLifetimeLocal = Number(user.plan_id) === 3 || (activeGrant && daysBetweenIso(activeGrant.granted_at, activeGrant.expires_at) >= 3650);
+  const copyDevice = () => {
+    if (!user.device_id) return;
+    try { navigator.clipboard.writeText(String(user.device_id)); toast('Device ID copiado!', 'ok'); } catch (_) {}
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-end bg-black/70 p-0 md:p-8"
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="w-full md:max-w-3xl max-h-[94vh] overflow-y-auto bg-[#0a0f1d] border md:rounded-3xl border-white/10 shadow-2xl">
+      <div className="w-full md:max-w-4xl max-h-[94vh] overflow-y-auto bg-[#0a0f1d] border md:rounded-3xl border-white/10 shadow-2xl">
         <div className="sticky top-0 z-10 bg-[#0a0f1d]/95 backdrop-blur border-b border-white/10 px-5 md:px-8 py-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs text-slate-400 uppercase tracking-widest font-bold">Usuário #{user.id}</div>
-            <div className="text-xl font-extrabold">{user.display_name || user.email || 'Usuário anônimo'}</div>
+          <div className="flex items-center gap-3 min-w-0">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Usuário #{user.id}</span>
+                {isTestUserLocal
+                  ? <span title={testOriginLocal} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-bold bg-orange-500/15 border border-orange-400/40 text-orange-300">🧪 Teste</span>
+                  : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest font-bold bg-emerald-500/10 border border-emerald-400/30 text-emerald-300">👤 Usuário Real</span>
+                }
+              </div>
+              <div className="text-xl font-extrabold truncate">{user.display_name || user.email || 'Usuário anônimo'}</div>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/10 text-slate-300"><X size={22}/></button>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/10 text-slate-300 shrink-0"><X size={22}/></button>
         </div>
 
         <div className="p-5 md:p-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Kv k="Email" v={user.email || '—'} />
-            <Kv k="Device ID" v={user.device_id ? String(user.device_id).slice(0, 32) + '…' : '—'} mono />
-            <Kv k="Criado em" v={fmtDate(user.created_at)} />
-            <Kv k="Último acesso" v={fmtDate(user.last_seen_at)} />
-            <Kv k="Trial inicia" v={fmtDate(user.trial_started_at)} />
-            <Kv k="Trial expira" v={fmtDate(user.trial_ends_at)} hint={user.trial_ends_at ? `(faltam ~${daysFromNowTo(user.trial_ends_at)} dias)` : ''} />
-            <Kv k="Assinatura" v={user.subscription_status || 'none'} />
-            <Kv k="Assinatura expira" v={fmtDate(user.subscription_expires_at)} hint={user.subscription_expires_at ? `(faltam ~${daysFromNowTo(user.subscription_expires_at)} dias)` : ''} />
-            <Kv k="Pagamento Provedor" v={user.payment_provider || '—'} />
-            <Kv k="Pagamento Ref" v={user.payment_ref ? String(user.payment_ref).slice(0, 40) : '—'} mono />
-          </div>
-
-          <Card title="Licença Atual" icon={<Shield size={20} className="text-indigo-400"/>}>
-            <LicenseBadge license={buildLicenseFake(user, grants[0])} trialEndsAt={user.trial_ends_at} big />
-          </Card>
-
-          <Card title="Ações de Status (bloquear/ativar)" icon={isBlocked ? <Ban size={20} className="text-red-400"/> : <CheckCircle size={20} className="text-emerald-400"/>}>
-            <div className="flex flex-wrap gap-3">
-              {isBlocked
-                ? <button onClick={() => onChangeStatus(user.id, 'active', 'Desbloqueado por admin')}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 hover:bg-emerald-500/30 font-bold">
-                    <CheckCircle size={16}/> Desbloquear (voltou a pagar)
-                  </button>
-                : <button onClick={() => onChangeStatus(user.id, 'blocked', 'Bloqueado por admin')}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/15 border border-red-400/30 text-red-200 hover:bg-red-500/25 font-bold">
-                    <Ban size={16}/> Bloquear App (acesso não permitido)
-                  </button>
+          {/* ==================== BLOCO 1: USUÁRIO ==================== */}
+          <Card title="USUÁRIO" icon={<User size={20} className="text-sky-400"/>}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Kv k="Email" v={user.email || '—'} />
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Device ID</div>
+                  {user.device_id
+                    ? <button onClick={copyDevice} title="Copiar Device ID completo" className="text-[10px] uppercase tracking-widest text-sky-300 hover:text-sky-200 font-bold px-2 py-0.5 rounded-md border border-sky-400/30 bg-sky-500/10">Copiar</button>
+                    : null
+                  }
+                </div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-3">
+                  {user.device_id
+                    ? <code className="text-xs font-mono text-slate-200 break-all block leading-relaxed">{user.device_id}</code>
+                    : <div className="text-white text-sm">—</div>
+                  }
+                </div>
+              </div>
+              <Kv k="Criado em" v={fmtDate(user.created_at)} />
+              <Kv k="Último acesso" v={user.last_seen_at ? fmtDate(user.last_seen_at) : <span className="text-slate-500 italic">— nunca registrado —</span>} />
+              <Kv k="Nome exibição" v={user.display_name || '—'} />
+              <Kv k="Origem (estimativa)" v={isTestUserLocal ? `🧪 ${testOriginLocal}` : 'Usuário real (nenhuma evidência de teste)'} />
+              {user.payment_provider || user.payment_ref
+                ? <>
+                    <Kv k="Pagamento — Provedor" v={user.payment_provider || '—'} />
+                    <Kv k="Pagamento — Referência" v={user.payment_ref ? String(user.payment_ref).slice(0, 60) : '—'} mono />
+                  </>
+                : null
               }
             </div>
           </Card>
 
-          <Card title="💰 Ativar Assinatura (Pagamento Recebido — PIX/Stripe/Manual)" icon={<CreditCard size={20} className="text-fuchsia-400"/>}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ==================== BLOCO 2: ACESSO ==================== */}
+          <Card title="ACESSO" icon={<Shield size={20} className="text-indigo-400"/>}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Plano</label>
-                <select value={subPlan} onChange={e => {
-                  const v = parseInt(e.target.value);
-                  setSubPlan(v);
-                  setSubDays(v === 3 ? 3650 : 30);
-                }} className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white">
-                  <option value={1}>Plano 1 — Gratuito</option>
-                  <option value={2}>Plano 2 — Mensal (30 dias)</option>
-                  <option value={3}>Plano 3 — Vitalício / Plano Único (3650 dias)</option>
-                </select>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Status</div>
+                {isBlocked
+                  ? <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs uppercase tracking-widest font-bold bg-red-500/15 border border-red-400/30 text-red-300"><Ban size={12}/> Bloqueado</span>
+                  : <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs uppercase tracking-widest font-bold bg-emerald-500/15 border border-emerald-400/30 text-emerald-300"><CheckCircle size={12}/> Ativo</span>
+                }
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Duração (dias)</label>
-                <input type="number" min="1" max="3650" value={subDays}
-                  onChange={e => setSubDays(parseInt(e.target.value||'30', 10))}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white font-bold"/>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Plano</div>
+                <PlanBadge planId={user.plan_id} type={null}/>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Meio pgto</label>
-                <select value={subProvider}
-                  onChange={e => setSubProvider(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white">
-                  <option value="pix">PIX</option>
-                  <option value="stripe">Stripe (cartão)</option>
-                  <option value="manual">Manual (transferência)</option>
-                  <option value="cupom">Cupom resgatado</option>
-                </select>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Tipo de Acesso</div>
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs tracking-widest uppercase font-bold border ${accessTypeLocal.cls}`}>{accessTypeLocal.text}</span>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Referência (TID/Email/Etq)</label>
-                <input value={subRef} onChange={e => setSubRef(e.target.value)}
-                  placeholder="ex: PIX ID XYZ ou email pagador"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white"/>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Trial</div>
+                {trialDaysLocal > 0
+                  ? <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-sky-500/15 border border-sky-400/30 text-sky-200"><Clock size={12}/> Sim · restam {trialDaysLocal} dias</span>
+                  : (user.trial_ends_at && trialDaysLocal <= 0
+                      ? <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 border border-amber-400/30 text-amber-200"><AlertTriangle size={12}/> Expirou</span>
+                      : <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-500/15 border border-slate-400/30 text-slate-300">Não utilizado / sem trial</span>
+                    )
+                }
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Motivo / Observações</label>
-                <input value={subReason} onChange={e => setSubReason(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white"/>
-              </div>
-              <div className="md:col-span-2">
-                <button
-                  onClick={() => onActivateSub(user.id, subPlan, subDays, subProvider, subRef || null, subReason || null)}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 via-pink-500 to-amber-400 font-extrabold text-white shadow-[0_18px_50px_-20px_rgba(217,70,239,.55)] hover:opacity-95">
-                  <Zap size={18}/> ✅ Confirmar Pagamento & Liberar Acesso (Plano {subPlan})
-                </button>
-              </div>
+              <Kv k="Validade" v={isLifetimeLocal ? '♾️ Permanente' : validityLocal} hint={!isLifetimeLocal && daysLeftTotal > 0 ? `(faltam ~${daysLeftTotal} dias)` : ''} />
+              <Kv k="Dias restantes (hoje)" v={isLifetimeLocal ? '♾️ Vitalício' : (daysLeftTotal > 0 ? `${daysLeftTotal} dias` : '0 dias (expirado)')} />
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent p-4">
+              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-2">Resumo da licença (como o app vê)</div>
+              <LicenseBadge license={buildLicenseFake(user, activeGrant || grants[0])} trialEndsAt={user.trial_ends_at} big />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <Kv k="Trial — Início" v={fmtDate(user.trial_started_at)} />
+              <Kv k="Trial — Fim" v={fmtDate(user.trial_ends_at)} hint={user.trial_ends_at && trialDaysLocal > 0 ? `(faltam ~${trialDaysLocal} dias)` : ''} />
+              <Kv k="Assinatura — Status" v={user.subscription_status || 'nenhuma'} />
+              <Kv k="Assinatura — Expira" v={fmtDate(user.subscription_expires_at)} hint={user.subscription_expires_at && daysFromNowTo(user.subscription_expires_at) > 0 ? `(faltam ~${daysFromNowTo(user.subscription_expires_at)} dias)` : ''} />
             </div>
           </Card>
 
-          <Card title="🔑 Dar Acesso Manual (Grant — cupom interno admin)" icon={<KeyRound size={20} className="text-sky-400"/>}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Dias (3650 = vitalício)</label>
-                <input type="number" min="1" max="3650" value={grantDays}
-                  onChange={e => setGrantDays(parseInt(e.target.value||'30', 10))}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white font-bold"/>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Motivo</label>
-                <input value={grantReason} onChange={e => setGrantReason(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white"/>
-              </div>
-              <div className="md:col-span-3">
-                <button
-                  onClick={() => onCreateGrant(user.id, grantDays, grantReason || null)}
-                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-200 hover:bg-sky-500/25 font-bold">
-                  <Plus size={16}/> Criar Grant ({grantDays} dias)
-                </button>
+          {/* ==================== BLOCO 3: AÇÕES ==================== */}
+          <Card title="AÇÕES" icon={<Zap size={20} className="text-fuchsia-400"/>}>
+
+            {/* 3A) Bloquear / Desbloquear */}
+            <div className="mb-6">
+              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-2">3.1 Status geral do usuário</div>
+              <div className="flex flex-wrap gap-3 p-3 rounded-2xl bg-black/30 border border-white/10">
+                {isBlocked
+                  ? <button onClick={() => onChangeStatus(user.id, 'active', 'Desbloqueado por admin')}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 hover:bg-emerald-500/30 font-bold">
+                      <CheckCircle size={16}/> Desbloquear usuário
+                    </button>
+                  : <button onClick={() => onChangeStatus(user.id, 'blocked', 'Bloqueado por admin')}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/15 border border-red-400/30 text-red-200 hover:bg-red-500/25 font-bold">
+                      <Ban size={16}/> Bloquear usuário (app trava)
+                    </button>
+                }
               </div>
             </div>
-          </Card>
 
-          <Card title="📋 Histórico de acessos manuais (grants)" icon={<Calendar size={20} className="text-amber-400"/>}>
-            {safeGrants.length === 0
-              ? <Empty>Esse usuário ainda NÃO recebeu nenhum acesso manual.</Empty>
-              : (
-                <div className="space-y-2">
-                  {safeGrants.map(g => (
-                    <div key={g.id} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-black/30 rounded-xl border border-white/10 p-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full border ${
-                            Number(g.active) === 1
-                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30'
-                              : 'bg-slate-500/15 text-slate-300 border-slate-400/30'
-                          }`}>
-                            {Number(g.active) === 1 ? 'VÁLIDO' : 'REVOGADO/EXPIRADO'}
-                          </span>
-                          <span className="text-xs text-slate-400 font-mono">grant #{g.id}</span>
-                          <span className="text-xs text-slate-400">
-                            dias: <b className="text-white">{daysBetweenIso(g.granted_at, g.expires_at)}</b>
-                          </span>
-                        </div>
-                        <div className="text-xs text-slate-400 mt-1 truncate">
-                          <span className="mr-3">🗓️ inícia {fmtDate(g.granted_at)}</span>
-                          <span>⌛ expira {fmtDate(g.expires_at)}{Number(g.active) === 1 ? ` (faltam ~${daysFromNowTo(g.expires_at)} dias)` : ''}</span>
-                        </div>
-                        {g.reason ? <div className="text-xs text-slate-300 mt-1">Motivo: <i>{g.reason}</i></div> : null}
-                      </div>
-                      {Number(g.active) === 1 ? (
-                        <button onClick={() => {
-                          const r = prompt('Motivo da revogação (opcional):', 'Cancelamento / Pagamento estornado');
-                          if (r === null) return;
-                          onRevokeGrant(g.id, r || 'Admin revogou manualmente');
-                        }} className="shrink-0 inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 text-xs font-bold">
-                          <Ban size={14}/> Revogar
-                        </button>
-                      ) : null}
-                    </div>
-                  ))}
+            {/* 3B) Confirmar Pagamento (RAPIDO Vitalício + form completo) */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">3.2 Pagamento recebido → Confirmar & Liberar</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-3">
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => onActivateSub(user.id, 3, 3650, 'pix', user.payment_ref || null, 'Pagamento PIX Plano Único Vitalício — Admin')}
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 via-pink-500 to-amber-400 font-extrabold text-white shadow-[0_18px_50px_-20px_rgba(217,70,239,.55)] hover:opacity-95">
+                    <CreditCard size={16}/> ✅ Confirmar Pagamento (Plano Único · Vitalício · 3650 dias · PIX)
+                  </button>
                 </div>
-              )}
+                <details className="group rounded-xl border border-white/10 bg-black/20">
+                  <summary className="cursor-pointer px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white select-none list-none">
+                    ⚙️ Opções avançadas (outros planos / Stripe / Manual / Cupom)
+                  </summary>
+                  <div className="p-4 pt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Plano</label>
+                      <select value={subPlan} onChange={e => {
+                        const v = parseInt(e.target.value);
+                        setSubPlan(v);
+                        setSubDays(v === 3 ? 3650 : 30);
+                      }} className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white">
+                        <option value={1}>Plano 1 — Gratuito</option>
+                        <option value={2}>Plano 2 — Mensal (30 dias)</option>
+                        <option value={3}>Plano 3 — Vitalício / Plano Único (3650 dias)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Duração (dias)</label>
+                      <input type="number" min="1" max="3650" value={subDays}
+                        onChange={e => setSubDays(parseInt(e.target.value||'30', 10))}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white font-bold"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Meio pgto</label>
+                      <select value={subProvider}
+                        onChange={e => setSubProvider(e.target.value)}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white">
+                        <option value="pix">PIX</option>
+                        <option value="stripe">Stripe (cartão)</option>
+                        <option value="manual">Manual (transferência)</option>
+                        <option value="cupom">Cupom resgatado</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Referência (TID/Email/Etq)</label>
+                      <input value={subRef} onChange={e => setSubRef(e.target.value)}
+                        placeholder="ex: PIX ID XYZ ou email pagador"
+                        className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white"/>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs text-slate-400 mb-1">Motivo / Observações</label>
+                      <input value={subReason} onChange={e => setSubReason(e.target.value)}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white"/>
+                    </div>
+                    <div className="md:col-span-2">
+                      <button
+                        onClick={() => onActivateSub(user.id, subPlan, subDays, subProvider, subRef || null, subReason || null)}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-100 hover:bg-sky-500/30 font-extrabold">
+                        <Zap size={16}/> Confirmar Pagamento customizado (Plano {subPlan} · {subDays} dias · {subProvider})
+                      </button>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            {/* 3C) Grants → Liberar temporariamente RÁPIDO + custom */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">3.3 Liberar acesso manual (Grant)</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-3">
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => onCreateGrant(user.id, 30, 'Acesso temporário 30 dias — Admin')}
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-200 hover:bg-sky-500/25 font-bold">
+                    <KeyRound size={16}/> ⏱️ Liberar 30 dias (temporário)
+                  </button>
+                  <button
+                    onClick={() => onCreateGrant(user.id, 3650, 'Grant vitalício manual — Admin')}
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-fuchsia-500/15 border border-fuchsia-400/30 text-fuchsia-200 hover:bg-fuchsia-500/25 font-bold">
+                    <KeyRound size={16}/> ♾️ Dar Grant Vitalício (3650 dias)
+                  </button>
+                </div>
+                <details className="group rounded-xl border border-white/10 bg-black/20">
+                  <summary className="cursor-pointer px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white select-none list-none">
+                    ⚙️ Grant customizado (dias e motivo livre)
+                  </summary>
+                  <div className="p-4 pt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Dias (3650 = vitalício)</label>
+                      <input type="number" min="1" max="3650" value={grantDays}
+                        onChange={e => setGrantDays(parseInt(e.target.value||'30', 10))}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white font-bold"/>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs text-slate-400 mb-1">Motivo</label>
+                      <input value={grantReason} onChange={e => setGrantReason(e.target.value)}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white"/>
+                    </div>
+                    <div className="md:col-span-3">
+                      <button
+                        onClick={() => onCreateGrant(user.id, grantDays, grantReason || null)}
+                        className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-200 hover:bg-sky-500/25 font-bold">
+                        <Plus size={16}/> Criar Grant customizado ({grantDays} dias)
+                      </button>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            {/* 3D) Histórico de grants + Revogar */}
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-2">3.4 Histórico de acessos manuais (grants) & Revogar</div>
+              {safeGrants.length === 0
+                ? <div className="p-5 rounded-2xl bg-black/30 border border-white/10 text-center text-slate-500 text-sm">Esse usuário ainda NÃO recebeu nenhum acesso manual (grant).</div>
+                : (
+                  <div className="space-y-2">
+                    {safeGrants.map(g => (
+                      <div key={g.id} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-black/30 rounded-xl border border-white/10 p-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full border ${
+                              Number(g.active) === 1
+                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30'
+                                : 'bg-slate-500/15 text-slate-300 border-slate-400/30'
+                            }`}>
+                              {Number(g.active) === 1 ? 'VÁLIDO' : 'REVOGADO/EXPIRADO'}
+                            </span>
+                            <span className="text-xs text-slate-400 font-mono">grant #{g.id}</span>
+                            <span className="text-xs text-slate-400">
+                              duração: <b className="text-white">{daysBetweenIso(g.granted_at, g.expires_at)} dias</b>
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-400 mt-1 truncate">
+                            <span className="mr-3">🗓️ inícia {fmtDate(g.granted_at)}</span>
+                            <span>⌛ expira {fmtDate(g.expires_at)}{Number(g.active) === 1 ? ` (faltam ~${daysFromNowTo(g.expires_at)} dias)` : ''}</span>
+                          </div>
+                          {g.reason ? <div className="text-xs text-slate-300 mt-1">Motivo: <i>{g.reason}</i></div> : null}
+                        </div>
+                        {Number(g.active) === 1 ? (
+                          <button onClick={() => {
+                            const r = prompt('Motivo da revogação (opcional):', 'Cancelamento / Pagamento estornado');
+                            if (r === null) return;
+                            onRevokeGrant(g.id, r || 'Admin revogou manualmente');
+                          }} className="shrink-0 inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-red-500/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 text-xs font-bold">
+                            <Ban size={14}/> Revogar Grant
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+
           </Card>
         </div>
       </div>

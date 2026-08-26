@@ -7,7 +7,7 @@ export default defineConfig({
   base: './',
   build: {
     outDir: '../docs/admin',
-    emptyOutDir: true,
+    emptyOutDir: false,
   },
   server: {
     port: 3001,

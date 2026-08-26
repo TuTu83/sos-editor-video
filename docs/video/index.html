@@ -88,8 +88,8 @@
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]"></span>
             Do mesmo criador deste vídeo
           </div>
-          <div class="mt-3 h-[56px] sm:h-[52px] relative">
-            <div id="bannerSlides" class="relative">
+          <div class="mt-3 min-h-[72px] sm:min-h-[68px] h-auto relative">
+            <div id="bannerSlides" class="relative w-full">
               <!-- slides injetados via JS -->
             </div>
           </div>
@@ -237,8 +237,33 @@
 
   <!-- JS principal do player -->
   <script>
-    const API_BASE = 'https://api.soseditor.com.br';
+    const API_BASE_PRIMARY = 'https://api.soseditor.com.br';
+    const API_BASE_FALLBACK = 'https://sos-editor-api.tututhebest.workers.dev';
+    let API_BASE = API_BASE_PRIMARY;
     const SITE_OFFICIAL = 'https://www.soseditor.com.br';
+
+    // Detectar automaticamente qual base de API funciona (fallback inteligente para DNS não propagado)
+    async function detectWorkingApiBase(timeoutMs = 2500) {
+      const tryFetch = async (base) => {
+        try {
+          const ctrl = new AbortController();
+          const to = setTimeout(() => ctrl.abort(), timeoutMs);
+          const res = await fetch(base + '/api/plans', { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+          clearTimeout(to);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return base;
+        } catch (_) { return null; }
+      };
+      const t1 = tryFetch(API_BASE_PRIMARY);
+      const t2 = tryFetch(API_BASE_FALLBACK);
+      const winner = await Promise.race([
+        t1,
+        new Promise(r => setTimeout(() => t2.then(r), Math.min(900, timeoutMs - 800)))
+      ]);
+      const chosen = winner || (await t2) || API_BASE_FALLBACK;
+      API_BASE = chosen || API_BASE_PRIMARY;
+      return API_BASE;
+    }
 
     // ==============================================
     // Banner rotativo (3 frases) — Item 3 usuário
@@ -266,10 +291,10 @@
       const dots = document.getElementById('bannerDots');
       const nodes = BANNER_SLIDES.map((s,i) => {
         const el = document.createElement('div');
-        el.className = 'marquee-slide absolute inset-0 flex flex-col justify-center opacity-0 translate-y-2';
+        el.className = 'marquee-slide absolute inset-0 flex flex-col justify-start sm:justify-center opacity-0 translate-y-2 w-full';
         el.innerHTML = `
           <div class="text-[13px] sm:text-sm text-sky-200/85 font-semibold tracking-wide">${s.eyebrow}</div>
-          <div class="mt-1 sm:mt-1.5 font-display font-extrabold text-white text-xl sm:text-2xl md:text-[28px] tracking-tight leading-[1.2] max-w-3xl">${s.headline}</div>
+          <div class="mt-1 sm:mt-1.5 font-display font-extrabold text-white text-xl sm:text-2xl md:text-[28px] tracking-tight leading-[1.2] max-w-3xl w-full">${s.headline}</div>
         `;
         wrap.appendChild(el);
         const d = document.createElement('button');
@@ -430,8 +455,8 @@
 
     document.getElementById('btnShare').onclick = async () => {
       const data = {
-        title: currentShare.title || 'Vídeo SOS Editor',
-        text: 'Assista a este vídeo publicado pelo SOS Editor!',
+        title: 'SOS Editor',
+        text: 'Confira este vídeo publicado pelo SOS Editor',
         url: currentShare.url || location.href
       };
       if (navigator.share && navigator.canShare && navigator.canShare(data)) {
@@ -469,6 +494,9 @@
     }
 
     async function loadVideo(){
+      if (API_BASE === API_BASE_PRIMARY) {
+        try { await detectWorkingApiBase(2800); } catch(_){ API_BASE = API_BASE_FALLBACK; }
+      }
       const id = getVideoId();
       const titleEl = document.getElementById('videoTitle');
       const metaEl = document.getElementById('videoMeta');
