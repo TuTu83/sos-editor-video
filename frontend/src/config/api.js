@@ -1,1 +1,1 @@
-export const API_URL = "https://sos-editor-video-production.up.railway.app";
+export const API_URL = "https://api.soseditor.com.br";

@@ -12,7 +12,7 @@ function App() {
   const [config, setConfig] = useState({
     site_name: 'S.O.S Editor',
     hero_title: 'Edite vídeos como um profissional',
-    hero_subtitle: 'O editor mais leve e poderoso para Windows, Mac e Linux.',
+    hero_subtitle: 'O editor mais leve e poderoso para Windows. Mobile (Android / iOS) em breve.',
     maintenance_mode: 'false'
   });
   const [plans, setPlans] = useState([]);
@@ -46,26 +46,34 @@ function App() {
     // Fetch Downloads
     fetch(`${API_URL}/api/downloads`)
       .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setDownloads(data);
+      .then(payload => {
+        const list = Array.isArray(payload) ? payload : (payload?.data || []);
+        setDownloads(list);
       })
       .catch(err => console.log('Error fetching downloads'));
   }, []);
 
   const handleDownload = (os) => {
+    const dl = downloads.find(d => d.os === os);
+    if (!dl) {
+      alert('Download não disponível no momento. Tente novamente mais tarde.');
+      return;
+    }
+    if (Number(dl.active ?? 1) !== 1) {
+      alert('Esta plataforma estará disponível em breve. Acompanhe nossas novidades!');
+      return;
+    }
+    if (!dl.url) {
+      alert('Download não disponível no momento. Tente novamente mais tarde.');
+      return;
+    }
+    // Track click (fire and forget)
     fetch(`${API_URL}/api/track/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ os })
-    });
-    
-    // Find URL
-    const dl = downloads.find(d => d.os === os);
-    if (dl && dl.url) {
-        window.location.href = dl.url;
-    } else {
-        alert('Download não disponível no momento. Tente novamente mais tarde.');
-    }
+    }).catch(() => {});
+    window.location.href = dl.url;
   };
 
   if (config.maintenance_mode === 'true') {

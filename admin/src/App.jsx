@@ -32,7 +32,15 @@ function Login({ setToken }) {
         setError(data.error || 'Erro ao entrar');
       }
     } catch (err) {
-      setError('Erro de conexão');
+      const msg = err && err.message ? err.message : String(err || 'Network error');
+      setError(
+        '⚠️ Erro de conexão com a API (' + API_URL + '). ' +
+        'Verifique se o Worker foi deployado (`npx wrangler deploy`) e se o domínio ' +
+        '`api.soseditor.com.br` existe no DNS / Custom Domain do Cloudflare. ' +
+        'Se ainda não configurou, use URL temporária Workers.dev: abra F12 → Console → ' +
+        "`localStorage.setItem('sos_admin_api_base_override', 'https://sua-url.workers.dev')` → F5. " +
+        'Detalhes: ' + msg.slice(0, 80)
+      );
     }
   };
 
@@ -140,7 +148,16 @@ function StatsTab({ token }) {
     useEffect(() => {
         fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => res.json())
-            .then(setStats)
+            .then(payload => {
+                // Worker retorna { status, data: { total_users, total_downloads, downloadsByOS } }
+                const d = payload?.data || payload || {};
+                setStats({
+                    totalVisits: Number(d.total_users || 0), // placeholders p/ futura feature de visits
+                    totalDownloads: Number(d.total_downloads || 0),
+                    downloadsByOS: Array.isArray(d.downloadsByOS) ? d.downloadsByOS : [],
+                    visitsHistory: Array.isArray(d.visitsHistory) ? d.visitsHistory : [],
+                });
+            })
             .catch(err => console.error(err));
     }, [token]);
 
@@ -229,15 +246,35 @@ function DownloadsTab({ token }) {
     const [downloads, setDownloads] = useState([]);
 
     useEffect(() => {
-        fetch(`${API_URL}/api/downloads`).then(res => res.json()).then(setDownloads);
+        fetch(`${API_URL}/api/downloads`)
+            .then(res => res.json())
+            .then(payload => {
+                const list = Array.isArray(payload) ? payload : (payload?.data || []);
+                setDownloads(list);
+            })
+            .catch(err => console.error(err));
     }, []);
 
     const handleUpdate = (dl) => {
+        // Normaliza active para number (garante 0/1)
+        const payloadSend = { ...dl };
+        if ('active' in payloadSend) {
+            payloadSend.active = payloadSend.active === true || payloadSend.active === 1 || String(payloadSend.active) === '1' ? 1 : 0;
+        }
+        if ('count' in payloadSend) {
+            payloadSend.count = parseInt(String(payloadSend.count || '0'), 10) || 0;
+        }
         fetch(`${API_URL}/api/admin/download`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(dl)
-        }).then(() => alert('Atualizado!'));
+            body: JSON.stringify(payloadSend)
+        }).then(res => res.json()).then(out => {
+            if (out?.data) {
+                // Atualiza a lista local com os dados retornados pelo backend
+                setDownloads(prev => prev.map(x => x.os === out.data.os ? { ...out.data } : x));
+            }
+            alert('Atualizado!');
+        }).catch(() => alert('Erro ao atualizar.'));
     };
 
     return (
@@ -246,13 +283,13 @@ function DownloadsTab({ token }) {
             <div className="grid gap-6">
                 {downloads.map((dl, idx) => (
                     <div key={dl.os} className="bg-dark p-6 rounded-xl border border-white/10 flex flex-col md:flex-row gap-4 md:items-end">
-                        <div className="flex-1 w-full">
+                        <div className="flex-1 w-full md:w-40">
                             <label className="block text-sm text-gray-400 mb-1">Sistema ({dl.os})</label>
                             <input disabled value={dl.os} className="opacity-50 cursor-not-allowed w-full bg-white/5 border border-white/10 rounded p-2 text-white" />
                         </div>
-                        <div className="flex-1 w-full">
+                        <div className="flex-1 w-full md:w-32">
                             <label className="block text-sm text-gray-400 mb-1">Versão</label>
-                            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.version} onChange={e => {
+                            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.version || ''} onChange={e => {
                                 const newDl = [...downloads];
                                 newDl[idx].version = e.target.value;
                                 setDownloads(newDl);
@@ -260,11 +297,30 @@ function DownloadsTab({ token }) {
                         </div>
                         <div className="flex-[2] w-full">
                             <label className="block text-sm text-gray-400 mb-1">URL do Arquivo</label>
-                            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.url} onChange={e => {
+                            <input className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.url || ''} onChange={e => {
                                 const newDl = [...downloads];
                                 newDl[idx].url = e.target.value;
                                 setDownloads(newDl);
                             }} />
+                        </div>
+                        <div className="w-full md:w-28">
+                            <label className="block text-sm text-gray-400 mb-1">Contador</label>
+                            <input type="number" min="0" step="1" className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={dl.count ?? 0} onChange={e => {
+                                const newDl = [...downloads];
+                                newDl[idx].count = parseInt(e.target.value || '0', 10);
+                                setDownloads(newDl);
+                            }} />
+                        </div>
+                        <div className="w-full md:w-32">
+                            <label className="block text-sm text-gray-400 mb-1">Status</label>
+                            <select className="w-full bg-white/5 border border-white/10 rounded p-2 text-white" value={Number(dl.active ?? 1)} onChange={e => {
+                                const newDl = [...downloads];
+                                newDl[idx].active = parseInt(e.target.value, 10) === 1 ? 1 : 0;
+                                setDownloads(newDl);
+                            }}>
+                                <option value={1}>Ativo</option>
+                                <option value={0}>Desativado</option>
+                            </select>
                         </div>
                         <button onClick={() => handleUpdate(dl)} className="btn bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded w-full md:w-auto flex justify-center items-center"><Save size={18}/></button>
                     </div>

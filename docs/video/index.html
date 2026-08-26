@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<title>SOS Editor — Vídeo</title>
+<meta name="description" content="Assista ao vídeo publicado pelo SOS Editor. Edite, corte e publique vídeos com facilidade — direto do seu desktop para a web." />
+<meta property="og:type" content="video.other" />
+<meta property="og:site_name" content="SOS Editor" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='%2322d3ee'/><stop offset='.55' stop-color='%236366f1'/><stop offset='1' stop-color='%23ec4899'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='url(%23g)'/><path d='M22 20 L46 32 L22 44 Z' fill='white' opacity='.97'/></svg>" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          sos: {
+            50:  '#eef7ff',
+            100: '#d9edff',
+            500: '#0b9dff',
+            600: '#0077e6',
+            700: '#0058b3',
+            900: '#071428',
+            950: '#030a18',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          display: ['"Plus Jakarta Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        },
+        boxShadow: {
+          glow: '0 30px 80px -24px rgba(99,102,241,.55), 0 0 0 1px rgba(148,163,184,.08) inset',
+          sos:  '0 16px 40px -20px rgba(11,157,255,.55)',
+        },
+      },
+    },
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  html,body{background:radial-gradient(1200px 600px at 80% -10%, rgba(34,211,238,.18), transparent 60%),radial-gradient(900px 500px at -10% 10%, rgba(236,72,153,.12), transparent 60%),linear-gradient(180deg, #030a18 0%, #061124 60%, #050e1e 100%);}
+  .marquee-slide{transition:opacity .6s ease, transform .6s ease;}
+  .social-btn{transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;}
+  .social-btn:hover{transform:translateY(-3px) scale(1.03); filter:brightness(1.08);}
+  .banner-grid{background-image:linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);background-size:32px 32px;mask-image:radial-gradient(ellipse at center, black 40%, transparent 82%);}
+  video::-webkit-media-controls-panel{background-color:rgba(4,10,24,.55) !important;}
+</style>
+</head>
+<body class="min-h-screen text-slate-100 font-sans antialiased selection:bg-sky-500/50 selection:text-white">
+
+  <!-- Top Nav -->
+  <header class="sticky top-0 z-30 backdrop-blur-xl bg-sos-950/60 border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="https://www.soseditor.com.br" class="inline-flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-400 via-indigo-500 to-pink-500 grid place-items-center shadow-sos">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 text-white" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="leading-tight">
+          <div class="font-display font-extrabold tracking-tight text-lg">SOS Editor</div>
+          <div class="text-[11px] text-slate-400 -mt-0.5">www.soseditor.com.br</div>
+        </div>
+      </a>
+      <a href="https://www.soseditor.com.br#baixar" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-sm font-semibold shadow-sos hover:brightness-110 transition">
+        Baixar grátis
+        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v14m0 0 5-5m-5 5-5-5M4 21h16"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+
+    <!-- BANNER DE PROPAGANDA ROTATIVO (Item 3 usuário) -->
+    <section class="mb-8 sm:mb-10 rounded-3xl overflow-hidden relative shadow-glow border border-white/5">
+      <div class="absolute inset-0 bg-[radial-gradient(700px_220px_at_0%_0%,rgba(56,189,248,.45),transparent_60%),radial-gradient(600px_220px_at_100%_100%,rgba(236,72,153,.35),transparent_60%),linear-gradient(135deg,#0b1e45_0%,#2a1065_45%,#56105a_100%)]"></div>
+      <div class="absolute inset-0 banner-grid opacity-40"></div>
+      <div class="relative px-5 sm:px-10 py-6 sm:py-9 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8">
+        <div class="hidden sm:grid w-16 h-16 rounded-2xl bg-white/10 backdrop-blur border border-white/10 place-items-center shrink-0 shadow-[0_12px_30px_-14px_rgba(255,255,255,.25)]">
+          <svg viewBox="0 0 24 24" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M4 7.5 A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v9A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5z"/>
+            <path d="M10 9l6 3-6 3z" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[11px] uppercase tracking-[.18em] text-sky-200 font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]"></span>
+            Do mesmo criador deste vídeo
+          </div>
+          <div class="mt-3 h-[56px] sm:h-[52px] relative">
+            <div id="bannerSlides" class="relative">
+              <!-- slides injetados via JS -->
+            </div>
+          </div>
+          <div id="bannerDots" class="mt-3 flex items-center gap-2"></div>
+        </div>
+        <a href="https://www.soseditor.com.br" target="_blank" rel="noopener noreferrer"
+           class="group shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-sos-900 font-bold text-sm sm:text-base shadow-[0_16px_40px_-18px_rgba(255,255,255,.55)] hover:bg-slate-50 active:scale-[.98] transition">
+          Conhecer o SOS Editor
+          <svg viewBox="0 0 24 24" class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- TÍTULO + VIEWS -->
+    <section class="mb-5 sm:mb-6">
+      <div class="flex items-end justify-between gap-4 flex-wrap">
+        <div class="min-w-0">
+          <div id="videoBadge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] uppercase tracking-[.18em] text-slate-400 font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+            SOS Editor · Player público
+          </div>
+          <h1 id="videoTitle" class="mt-3 font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white/95 leading-[1.15]">
+            Carregando vídeo...
+          </h1>
+          <div id="videoMeta" class="mt-2 text-sm text-slate-400">—</div>
+        </div>
+        <div id="viewsChip" class="hidden items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 text-sm text-slate-200">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span id="viewsCount">0</span>
+          <span class="text-slate-500">visualizações</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAYER -->
+    <section id="playerCard" class="rounded-3xl overflow-hidden bg-black border border-white/5 shadow-glow">
+      <div class="aspect-video w-full bg-black grid place-items-center">
+        <video id="player" class="w-full h-full" controls playsinline preload="metadata" poster="">
+          <source id="videoSource" src="" type="video/mp4" />
+          Seu navegador não suporta reprodução HTML5.
+        </video>
+      </div>
+    </section>
+
+    <!-- AÇÕES: BAIXAR + COMPARTILHAR (Item 1 usuário) -->
+    <section class="mt-6 grid md:grid-cols-5 gap-4">
+      <div class="md:col-span-3 rounded-2xl bg-white/[.03] border border-white/5 p-4 sm:p-5 backdrop-blur">
+        <h2 class="font-display font-extrabold text-lg tracking-tight text-white/95">Sobre este vídeo</h2>
+        <p class="mt-2 text-sm text-slate-400 leading-relaxed">
+          Vídeo publicado com o SOS Editor — editor de vídeos desktop 100% offline, com corte preciso,
+          texto animado e publicação em 1 clique para a web.
+        </p>
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+          <span class="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs border border-cyan-500/20">Corte preciso</span>
+          <span class="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 text-xs border border-indigo-500/20">Texto animado</span>
+          <span class="px-2.5 py-1 rounded-full bg-pink-500/10 text-pink-300 text-xs border border-pink-500/20">1 clique publica</span>
+          <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs border border-emerald-500/20">Windows · Android · iOS</span>
+        </div>
+      </div>
+
+      <div class="md:col-span-2 grid gap-3">
+        <a id="btnDownload" href="#" target="_blank" rel="noopener noreferrer"
+           class="group relative overflow-hidden rounded-2xl p-[1px] bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 shadow-[0_18px_40px_-20px_rgba(16,185,129,.7)] active:scale-[.99] transition">
+          <div class="rounded-[15px] bg-sos-950/95 px-5 py-4 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 grid place-items-center shrink-0 shadow-[0_10px_24px_-10px_rgba(16,185,129,.85)]">
+              <svg viewBox="0 0 24 24" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v14m0 0 5-5m-5 5-5-5M4 21h16"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-display font-extrabold text-white text-base leading-tight">Baixar vídeo</div>
+              <div class="text-[12px] text-emerald-200/85 -mt-0.5">Salve em seu celular ou PC</div>
+            </div>
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-emerald-300 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </div>
+        </a>
+
+        <button id="btnShare" type="button"
+           class="group relative overflow-hidden rounded-2xl p-[1px] bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 shadow-[0_18px_40px_-20px_rgba(168,85,247,.75)] active:scale-[.99] transition">
+          <div class="rounded-[15px] bg-sos-950/95 px-5 py-4 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500 to-indigo-500 grid place-items-center shrink-0 shadow-[0_10px_24px_-10px_rgba(168,85,247,.85)]">
+              <svg viewBox="0 0 24 24" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+            </div>
+            <div class="flex-1 min-w-0 text-left">
+              <div class="font-display font-extrabold text-white text-base leading-tight">Compartilhar</div>
+              <div class="text-[12px] text-fuchsia-200/85 -mt-0.5">WhatsApp, Instagram e muito mais</div>
+            </div>
+            <svg viewBox="0 0 24 24" class="w-4 h-4 text-fuchsia-300 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <footer class="mt-10 sm:mt-14 pb-10">
+      <div class="rounded-2xl border border-white/5 bg-white/[.03] px-5 py-5 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="text-sm text-slate-400">
+          © <span id="yr"></span> SOS Editor · <a class="hover:text-sky-300 underline underline-offset-4 decoration-sky-500/30" href="https://www.soseditor.com.br">www.soseditor.com.br</a>
+        </div>
+        <div class="text-xs text-slate-500">
+          Feito com ❤️ para criadores de conteúdo que precisam de velocidade.
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- MODAL COMPARTILHAR (Item 1 usuário: todas redes sociais) -->
+  <div id="shareModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div id="shareBackdrop" class="absolute inset-0 bg-sos-950/80 backdrop-blur-md"></div>
+    <div class="relative w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl bg-gradient-to-b from-[#0a1736] to-[#0b1226] border border-white/10 shadow-glow overflow-hidden">
+      <div class="relative px-5 sm:px-8 pt-5 pb-4 border-b border-white/5 flex items-start justify-between gap-4">
+        <div>
+          <div class="font-display font-extrabold text-xl text-white tracking-tight">Compartilhar vídeo</div>
+          <div class="text-sm text-slate-400 mt-1">Escolha por onde enviar para um amigo</div>
+        </div>
+        <button id="btnCloseShare" type="button" class="shrink-0 w-10 h-10 rounded-full grid place-items-center bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 active:scale-95 transition" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div id="sharePreview" class="px-5 sm:px-8 py-4 bg-white/[.03] border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 grid place-items-center shrink-0">
+            <svg viewBox="0 0 24 24" class="w-6 h-6 text-white" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div id="shareTitle" class="font-semibold text-white/95 truncate">Vídeo SOS Editor</div>
+            <div id="shareUrl" class="text-xs text-slate-400 truncate">carregando...</div>
+          </div>
+        </div>
+      </div>
+      <div class="px-5 sm:px-8 py-5 grid grid-cols-4 gap-3 sm:gap-4" id="shareGrid">
+        <!-- cards injetados via JS -->
+      </div>
+      <div class="px-5 sm:px-8 pb-5 sm:pb-6 pt-1 border-t border-white/5 bg-white/[.02]">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div id="copyLinkField" class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-sos-950/80 border border-white/10 font-mono text-xs text-slate-200 truncate"></div>
+          <button id="btnCopyModal" type="button" class="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 text-emerald-950 text-sm font-extrabold shadow-[0_12px_24px_-14px_rgba(163,230,53,.9)] hover:brightness-110 active:scale-[.98] transition">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+            Copiar link
+          </button>
+        </div>
+        <div id="copyToast" class="mt-2 hidden items-center gap-2 text-xs text-emerald-300 font-semibold">
+          ✅ Link copiado para a área de transferência
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS principal do player -->
+  <script>
+    const API_BASE = 'https://api.soseditor.com.br';
+    const SITE_OFFICIAL = 'https://www.soseditor.com.br';
+
+    // ==============================================
+    // Banner rotativo (3 frases) — Item 3 usuário
+    // ==============================================
+    const BANNER_SLIDES = [
+      {
+        eyebrow: 'Corte profissional em segundos',
+        headline: 'Edite vídeos com <b class="text-sky-300">facilidade</b>, sem complicação — direto do seu desktop.',
+        cta: 'Experimente grátis no Windows',
+      },
+      {
+        eyebrow: 'Texto animado · ajustes · cortes',
+        headline: 'Publique no <b class="text-fuchsia-300">seu site</b> com apenas <b class="text-lime-300">1 clique</b>. Navegador, celular e TV.',
+        cta: 'Veja como funciona',
+      },
+      {
+        eyebrow: 'Windows · Android · iOS (em breve)',
+        headline: 'SOS Editor: a ferramenta <b class="text-amber-200">que faltava</b> para criadores que <b class="text-sky-300">precisam de velocidade</b>.',
+        cta: 'Baixar agora',
+      },
+    ];
+
+    (function initBanner(){
+      const wrap = document.getElementById('bannerSlides');
+      const dots = document.getElementById('bannerDots');
+      const nodes = BANNER_SLIDES.map((s,i) => {
+        const el = document.createElement('div');
+        el.className = 'marquee-slide absolute inset-0 flex flex-col justify-center opacity-0 translate-y-2';
+        el.innerHTML = `
+          <div class="text-[13px] sm:text-sm text-sky-200/85 font-semibold tracking-wide">${s.eyebrow}</div>
+          <div class="mt-1 sm:mt-1.5 font-display font-extrabold text-white text-xl sm:text-2xl md:text-[28px] tracking-tight leading-[1.2] max-w-3xl">${s.headline}</div>
+        `;
+        wrap.appendChild(el);
+        const d = document.createElement('button');
+        d.type = 'button';
+        d.setAttribute('aria-label', 'Slide ' + (i+1));
+        d.className = 'w-1.5 h-1.5 rounded-full bg-white/25 transition-all';
+        dots.appendChild(d);
+        return { el, dot: d };
+      });
+      let idx = 0;
+      function render(){
+        nodes.forEach((n, i) => {
+          const active = i === idx;
+          n.el.style.opacity = active ? '1' : '0';
+          n.el.style.transform = active ? 'translateY(0)' : 'translateY(8px)';
+          n.dot.style.width = active ? '18px' : '6px';
+          n.dot.style.height = '6px';
+          n.dot.className = 'rounded-full transition-all ' + (active ? 'bg-gradient-to-r from-cyan-300 to-fuchsia-300' : 'bg-white/25 hover:bg-white/40');
+        });
+      }
+      nodes.forEach((n,i)=>n.dot.onclick=()=>{idx=i;render();go();});
+      render();
+      let t;
+      function go(){ clearTimeout(t); t = setTimeout(next, 5800); }
+      function next(){ idx = (idx + 1) % BANNER_SLIDES.length; render(); go(); }
+      go();
+    })();
+
+    // ==============================================
+    // Modal de compartilhar (Item 1 usuário)
+    // ==============================================
+    const SHARE_NETWORKS = [
+      {
+        id: 'whatsapp', name: 'WhatsApp', color: 'from-emerald-500 to-green-500',
+        icon: `<svg viewBox="0 0 32 32" class="w-6 h-6" fill="currentColor"><path d="M27.2 4.8A15.9 15.9 0 0 0 4.6 27.5L3 32l4.7-1.5a15.9 15.9 0 0 0 7.7 2c8.8 0 16-7.1 16-15.9 0-4.2-1.7-8.3-4.7-11.3L27.2 4.8Zm-8.7 21a13.4 13.4 0 0 1-6.9-2l-.5-.3-2.8 1l1-2.7-.3-.5a13.4 13.4 0 0 1-2.1-7.2c0-7.4 6-13.4 13.3-13.4 3.6 0 7 1.5 9.4 4a13.2 13.2 0 0 1 4 9.3c0 7.4-6.1 13.4-15.1 11.8Zm8.3-11.3c-.5-.2-2.7-1.3-3.1-1.5-.4-.2-.7-.3-1 .2-.3.5-1.2 1.5-1.5 1.8-.3.3-.6.3-1 .1-.5-.2-2-.7-3.9-2.4-1.4-1.3-2.4-3-2.7-3.5-.3-.5 0-.8.2-1 .2-.2.5-.3.7-.5.2-.2.3-.3.5-.5.2-.2.2-.5.3-.8.1-.3 0-.5 0-.7l-1.2-3c-.3-.8-.7-.7-1-.7h-1c-.3 0-.8.1-1.2.6-.5.5-1.7 1.7-1.7 4.1s1.8 4.8 2 5.1c.3.3 3.6 5.5 8.9 7.7 5 2.1 5.5 1.7 6.5 1.6 1-.1 3.2-1.3 3.6-2.6.5-1.3.5-2.5.3-2.7-.1-.2-.4-.3-1-.5Z"/></svg>`,
+        build(u,t){ return `https://api.whatsapp.com/send?text=${encodeURIComponent(t + ' — ' + u)}`; },
+        tip: 'Enviar por WhatsApp',
+      },
+      {
+        id: 'telegram', name: 'Telegram', color: 'from-sky-400 to-blue-500',
+        icon: `<svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="m9.78 15.28-.38 5.34c.55 0 .79-.24 1.08-.52l2.61-2.5 5.43 3.97c1 .56 1.71.27 1.97-.94l3.58-16.84c.33-1.5-.56-2.08-1.55-1.73L1.25 9.49c-1.47.58-1.46 1.4-.26 1.77l5.49 1.7L20.13 4.39c.6-.26 1.13-.12.69.25l-12 10.64z"/></svg>`,
+        build(u,t){ return `https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}`; },
+        tip: 'Compartilhar no Telegram',
+      },
+      {
+        id: 'x', name: 'X / Twitter', color: 'from-zinc-700 to-black',
+        icon: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M18.244 2H21.5l-7.17 8.2L22.5 22h-6.84l-5.36-7.02L4.2 22H.94l7.67-8.76L.9 2h7.02l4.84 6.43L18.244 2Zm-2.4 18h1.9L7.28 4h-2l10.56 16Z"/></svg>`,
+        build(u,t){ return `https://x.com/intent/tweet?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}`; },
+        tip: 'Postar no X',
+      },
+      {
+        id: 'facebook', name: 'Facebook', color: 'from-blue-600 to-blue-800',
+        icon: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M13 22v-8h2.7l.4-3.2H13V8.7c0-.93.26-1.56 1.58-1.56H16.2V4.2c-.28-.04-1.25-.12-2.38-.12-2.35 0-3.97 1.44-3.97 4.08v2.36H7.7V14h2.15v8H13Z"/></svg>`,
+        build(u){ return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`; },
+        tip: 'Compartilhar no Facebook',
+      },
+      {
+        id: 'linkedin', name: 'LinkedIn', color: 'from-sky-700 to-blue-900',
+        icon: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1-.02 5.001A2.5 2.5 0 0 1 4.98 3.5ZM3 9h4v12H3V9Zm7 0h3.8v1.64h.05c.53-1 1.84-2.07 3.78-2.07 4.05 0 4.8 2.66 4.8 6.13V21h-4v-5.38c0-1.28-.03-2.94-1.79-2.94-1.79 0-2.06 1.4-2.06 2.84V21h-4V9Z"/></svg>`,
+        build(u,t){ return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u)}`; },
+        tip: 'Compartilhar no LinkedIn',
+      },
+      {
+        id: 'instagram', name: 'Instagram', color: 'from-pink-500 via-fuchsia-500 to-orange-400',
+        icon: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="6"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`,
+        build(u,t){ return null; }, // Instagram NÃO tem share link web oficial
+        tip: 'Abrir Instagram (stories/DM)',
+        instagramHint: true,
+      },
+      {
+        id: 'email', name: 'Email', color: 'from-slate-500 to-slate-700',
+        icon: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>`,
+        build(u,t){ return `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(t + '\n\n' + u)}`; },
+        tip: 'Enviar por e-mail',
+      },
+      {
+        id: 'copy', name: 'Copiar link', color: 'from-lime-400 to-emerald-500',
+        icon: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>`,
+        build(){ return 'copy'; },
+        tip: 'Copiar para a área de transferência',
+      },
+    ];
+
+    let currentShare = { url: location.href, title: 'Vídeo SOS Editor' };
+
+    function openShareModal(data){
+      currentShare = { url: data.url, title: data.title };
+      const modal = document.getElementById('shareModal');
+      const grid = document.getElementById('shareGrid');
+      document.getElementById('shareTitle').textContent = data.title;
+      document.getElementById('shareUrl').textContent = data.url;
+      document.getElementById('copyLinkField').textContent = data.url;
+      grid.innerHTML = '';
+      SHARE_NETWORKS.forEach(n => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'social-btn relative flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-2xl group';
+        b.setAttribute('aria-label', n.tip);
+        b.title = n.tip + (n.instagramHint ? ' (não há share link oficial — use stories)' : '');
+        const target = n.build ? n.build(currentShare.url, currentShare.title) : '';
+        const igBadge = n.instagramHint ? `<div class="absolute -top-1 -right-1 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-950 font-bold">Stories</div>` : '';
+        b.innerHTML = `
+          ${igBadge}
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${n.color} text-white grid place-items-center shadow-[0_14px_30px_-16px_rgba(255,255,255,.25)]">
+            ${n.icon}
+          </div>
+          <div class="text-[11px] sm:text-xs font-semibold text-slate-200 -mt-0.5">${n.name}</div>
+        `;
+        b.onclick = () => handleShareClick(n, target);
+        grid.appendChild(b);
+      });
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeShareModal(){
+      const modal = document.getElementById('shareModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    function showCopyToast(){
+      const t = document.getElementById('copyToast');
+      t.classList.remove('hidden');
+      t.classList.add('inline-flex');
+      setTimeout(()=>{ t.classList.add('hidden'); t.classList.remove('inline-flex'); }, 1800);
+    }
+
+    async function handleShareClick(n, target){
+      if (target === 'copy' || n.id === 'copy'){
+        try { await navigator.clipboard.writeText(currentShare.url); showCopyToast(); }
+        catch(_){ alert('Copie manualmente:\n' + currentShare.url); }
+        return;
+      }
+      if (n.instagramHint){
+        // Instagram não tem share URL oficial. Abrimos o site e avisamos ao usuário.
+        try { await navigator.clipboard.writeText(currentShare.url); showCopyToast(); } catch(_){}
+        if (confirm(
+          '📱 Instagram não tem compartilhamento web oficial.\n\n' +
+          'O link do vídeo já foi copiado para você colar nos Stories ou em uma DM!\n\n' +
+          'Deseja abrir o Instagram agora?'
+        )){
+          window.open('https://www.instagram.com', '_blank', 'noopener,noreferrer');
+        }
+        return;
+      }
+      if (target && /^https?:/i.test(target)){
+        window.open(target, '_blank', 'noopener,noreferrer,width=700,height=640');
+        return;
+      }
+      if (target && /^mailto:/i.test(target)){
+        location.href = target;
+        return;
+      }
+    }
+
+    document.getElementById('btnShare').onclick = async () => {
+      const data = {
+        title: currentShare.title || 'Vídeo SOS Editor',
+        text: 'Assista a este vídeo publicado pelo SOS Editor!',
+        url: currentShare.url || location.href
+      };
+      if (navigator.share && navigator.canShare && navigator.canShare(data)) {
+        try { await navigator.share(data); return; }
+        catch (_) { /* usuário cancelou ou incompatibilidade → fallback abaixo */ }
+      }
+      openShareModal(currentShare);
+    };
+    document.getElementById('btnCloseShare').onclick = closeShareModal;
+    document.getElementById('shareBackdrop').onclick = closeShareModal;
+    document.getElementById('btnCopyModal').onclick = async () => {
+      try { await navigator.clipboard.writeText(currentShare.url); showCopyToast(); }
+      catch(_){ alert('Copie manualmente:\n' + currentShare.url); }
+    };
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeShareModal(); });
+
+    // ==============================================
+    // Carregamento do vídeo
+    // ==============================================
+    function getVideoId(){
+      const q = new URLSearchParams(location.search).get('id');
+      if (q) return q;
+      const parts = location.pathname.split('/').filter(Boolean);
+      const i = parts.indexOf('video');
+      if (i >= 0 && parts[i+1]) return decodeURIComponent(parts[i+1]);
+      return '';
+    }
+
+    function fmtDate(iso){
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+      } catch { return ''; }
+    }
+
+    async function loadVideo(){
+      const id = getVideoId();
+      const titleEl = document.getElementById('videoTitle');
+      const metaEl = document.getElementById('videoMeta');
+      const sourceEl = document.getElementById('videoSource');
+      const player = document.getElementById('player');
+      const btnDownload = document.getElementById('btnDownload');
+      const viewsChip = document.getElementById('viewsChip');
+      const viewsCount = document.getElementById('viewsCount');
+      if (!id){
+        titleEl.textContent = 'Vídeo não encontrado';
+        metaEl.textContent = 'Nenhum ID foi informado na URL.';
+        return;
+      }
+      try {
+        const url = `${API_BASE}/api/videos/${encodeURIComponent(id)}`;
+        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const payload = await res.json();
+        const d = (payload && payload.data) ? payload.data : (payload || {});
+        const videoUrl = d.stream_url || d.url || d.storage_url || '';
+        const title = d.title || ('SOS Editor · Vídeo ' + id);
+        titleEl.textContent = title;
+        metaEl.textContent = fmtDate(d.created_at || '') || 'Publicado no SOS Editor';
+        document.title = `${title} — SOS Editor`;
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        if (!ogTitle){
+          const m = document.createElement('meta');
+          m.setAttribute('property','og:title');
+          document.head.appendChild(m);
+          m.setAttribute('content', title);
+        } else ogTitle.setAttribute('content', title);
+        currentShare.title = title;
+        const finalShareUrl = (location.origin + location.pathname + '?id=' + encodeURIComponent(id)) || location.href;
+        currentShare.url = finalShareUrl;
+        document.getElementById('shareUrl').textContent = finalShareUrl;
+        document.getElementById('copyLinkField').textContent = finalShareUrl;
+        // Og tags video url (usamos storage_url se existir)
+        if (d.storage_url || d.url){
+          ['og:video','og:video:url','og:video:secure_url'].forEach(p => {
+            let m = document.querySelector(`meta[property="${p}"]`);
+            if (!m){ m = document.createElement('meta'); m.setAttribute('property', p); document.head.appendChild(m); }
+            m.setAttribute('content', d.storage_url || d.url);
+          });
+          const mt = document.querySelector('meta[property="og:video:type"]');
+          if (!mt){ const m=document.createElement('meta'); m.setAttribute('property','og:video:type'); m.setAttribute('content', d.mime_type || 'video/mp4'); document.head.appendChild(m); }
+        }
+        if (videoUrl){
+          sourceEl.src = videoUrl;
+          if (d.mime_type) sourceEl.setAttribute('type', d.mime_type);
+          player.load();
+        }
+        // Download aponta tanto para storage_url (CDN público barato) como fallback para stream_url
+        const dlUrl = d.storage_url || d.url || videoUrl;
+        if (dlUrl){
+          btnDownload.href = dlUrl;
+          if (d.filename){
+            btnDownload.setAttribute('download', String(d.filename));
+          }
+        }
+        if (typeof d.views === 'number'){
+          viewsCount.textContent = d.views.toLocaleString('pt-BR');
+          viewsChip.classList.remove('hidden');
+          viewsChip.classList.add('inline-flex');
+        }
+      } catch (e) {
+        titleEl.textContent = 'Não foi possível carregar este vídeo';
+        metaEl.textContent = 'Talvez ele tenha sido removido ou a URL esteja incorreta. (' + (e && e.message ? e.message : String(e)) + ')';
+        player.poster = '';
+      }
+    }
+
+    document.getElementById('yr').textContent = String(new Date().getFullYear());
+    loadVideo().catch(console.error);
+  </script>
+</body>
+</html>

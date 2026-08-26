@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Redirecionando... | S.O.S Editor</title>
+<script>
+(function(){
+  var p = window.location.pathname || '/';
+  var parts = p.split('/').filter(Boolean);
+  if (parts.length >= 2 && parts[0].toLowerCase() === 'video') {
+    var id = decodeURIComponent(parts[1] || '');
+    if (id && id.length > 0) {
+      window.location.replace('/video/index.html?id=' + encodeURIComponent(id));
+      return;
+    }
+  }
+  window.location.replace('/');
+})();
+</script>
+</head>
+<body></body>
+</html>

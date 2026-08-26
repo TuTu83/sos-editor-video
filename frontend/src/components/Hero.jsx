@@ -7,7 +7,7 @@ const slides = [
   {
     id: 1,
     title: "Edite vídeos como um profissional",
-    subtitle: "O editor mais leve e poderoso para Windows, Mac e Linux.",
+    subtitle: "O editor mais leve e poderoso para Windows, Android e iOS.",
     bgGradient: "from-primary/20 via-background to-background",
     accent: "text-primary"
   },
