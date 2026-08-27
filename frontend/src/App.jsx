@@ -6,9 +6,11 @@ import DownloadSection from './components/DownloadSection';
 import Pricing from './components/Pricing';
 import Footer from './components/Footer';
 import PaymentModal from './components/PaymentModal';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import { API_URL } from './config/api';
 
 function App() {
+  const [currentPage, setCurrentPage] = useState('home');
   const [config, setConfig] = useState({
     site_name: 'S.O.S Editor',
     hero_title: 'Edite vídeos como um profissional',
@@ -20,6 +22,24 @@ function App() {
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   useEffect(() => {
+    // Detector de rota simples (SÓ para /politica-de-privacidade) — NÃO importa roteador, NÃO quebra a SPA inicial
+    const path = (typeof window !== 'undefined' ? (window.location.pathname || '') : '').toLowerCase();
+    if (path.includes('politica-de-privacidade')) {
+      setCurrentPage('privacy');
+    } else {
+      setCurrentPage('home');
+    }
+
+    const onPop = () => {
+      const p = (window.location.pathname || '').toLowerCase();
+      setCurrentPage(p.includes('politica-de-privacidade') ? 'privacy' : 'home');
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  useEffect(() => {
+    if (currentPage !== 'home') return;
     // Fetch Config
     fetch(`${API_URL}/api/config`)
       .then(res => res.json())
@@ -75,6 +95,10 @@ function App() {
     }).catch(() => {});
     window.location.href = dl.url;
   };
+
+  if (currentPage === 'privacy') {
+    return <PrivacyPolicy />;
+  }
 
   if (config.maintenance_mode === 'true') {
     return (
