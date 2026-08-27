@@ -1,0 +1,96 @@
+name = "sos-editor-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare D1
+[[d1_databases]]
+binding = "SOS_EDITOR_DB"
+database_name = "sos-editor-db"
+database_id = "010de3f4-bc29-44da-8351-53d7ca7f093b"
+
+# Cloudflare R2
+[[r2_buckets]]
+binding = "SOS_EDITOR_R2"
+bucket_name = "sos-editor-videos"
+
+[vars]
+ENVIRONMENT = "production"
+# =============== PUBLIC_R2_URL_PREFIX =========================================
+# URL pública base (sem barra final) do BUCKET R2 `sos-editor-videos`.
+#
+# Serve 2 propósitos:
+# 1) Monta o campo storage_url (link CDN público direto, fallback do player).
+# 2) É o redirect 302 quando por algum motivo bucket.head(r2_key) falha no stream.
+#
+# O streaming do player NÃO DEPENDE disto (ele usa o Worker /api/videos/:id/stream
+# que lê via binding nativo). Mas é OBRIGATÓRIO preencher para:
+#   - botão "Abrir vídeo em nova aba" no player;
+#   - botão "Baixar vídeo";
+#   - fallback de performance (CDN público é mais barato que GB-saída Worker).
+#
+# Como obter (2 opções):
+#
+# OPÇÃO A (sem domínio extra, R2 público padrão Cloudflare):
+#   1. Painel Cloudflare → R2 → Buckets → sos-editor-videos → Settings
+#   2. "Public bucket domains" → "Allow Access" (ou copie o "Public bucket hostname")
+#   3. Formato: https://pub-<hash-muito-longo>.r2.dev
+#      Exemplo: https://pub-1a2b3c4d5e6f7890abcdef1234567890.r2.dev
+#
+# OPÇÃO B (recomendado, domínio próprio):
+#   1. Painel Cloudflare → R2 → Bucket sos-editor-videos → Settings
+#   2. "Custom Domains" → Connect Domain → digite cdn.soseditor.com.br
+#   3. Cloudflare cria automaticamente o DNS/SSL.
+#   4. Valor aqui: https://cdn.soseditor.com.br
+PUBLIC_R2_URL_PREFIX = "https://cdn.soseditor.com.br"
+
+# ===== CREDENCIAIS R2 (para Presigned PUT URL — upload > 80MB direto Electron→R2) =====
+# Para upload de vídeos GRANDES, Cloudflare Workers NÃO ACEITA body > 100MB
+# (limite intransponível, causa HTTP 413 Payload Too Large).
+# Solução: gerar URL pré-assinada S3 v4 (PutObject) no Worker e enviar arquivo
+# DIRETO do Electron para o endpoint público S3-compatível do R2, SEM passar pelo Worker.
+#
+# OBRIGATÓRIO: configure OS 3 valores abaixo com `wrangler secret put`
+# (NÃO cole-os aqui no wrangler.toml nem commit o arquivo com secrets):
+#
+#   npx wrangler secret put R2_ACCOUNT_ID
+#     → Painel Cloudflare → R2 → Manage R2 API Tokens → Account ID (superior direito)
+#   npx wrangler secret put R2_ACCESS_KEY_ID
+#     → Painel → R2 → Manage R2 API Tokens → Create API Token → permissão "Admin Read & Write"
+#     → use a chave criada (Access Key ID)
+#   npx wrangler secret put R2_SECRET_ACCESS_KEY
+#     → mesma tela do token, chave "Secret Access Key" (guarde bem, só aparece 1 vez)
+#
+# Sem essas 3 secrets configuradas, vídeos <= 80MB ainda funcionam (flow FormData normal).
+# Vídeos > 80MB do Electron vão para esse flow presigned e EXIGEM credenciais válidas.
+# Vars placeholder (APENAS documentação; os valores REAIS vêm via wrangler secret):
+# R2_ACCOUNT_ID = "via wrangler secret"
+# R2_ACCESS_KEY_ID = "via wrangler secret"
+# R2_SECRET_ACCESS_KEY = "via wrangler secret"
+
+[build]
+command = "echo ok"
+
+# ============================================================
+# AVISOS DE DEPLOY (Wrangler v4)
+# ============================================================
+#
+# 1. Este Worker é API PURA. NÃO tem arquivos estáticos (site/admin/player
+#    ficam em docs/ publicado pelo GitHub Pages). Portanto SEMPRE use:
+#
+#      npx wrangler deploy --no-assets --cwd .
+#
+#    o --no-assets desativa 100% a feature Workers Assets (Wrangler v4) e
+#    evita que ele procure por diretórios de assets na pasta pai (raiz do
+#    Electron) e acabe dando erro "Asset too large" com o ZIP 380 MiB.
+#
+# 2. Não adicione seções [assets], [site] ou pages_build_output_dir neste
+#    arquivo — elas ativarão a feature de assets e podem causar erro.
+#
+# 3. Garanta que ./node_modules/wrangler exista LOCALMENTE:
+#      cd sos-editor-site/worker
+#      npm install
+#    Isso faz com que `npx wrangler` use o binário do worker e NÃO resolva
+#    para o `wrangler` do package.json da RAIZ do Electron (que causava
+#    "Read 51778 files from D:\video-editor-desktop").
+

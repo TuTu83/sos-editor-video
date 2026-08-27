@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sos-editor-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "observability": {
+    "enabled": true
+  },
+
+  "d1_databases": [
+    {
+      "binding": "SOS_EDITOR_DB",
+      "database_name": "sos-editor-db",
+      "database_id": "010de3f4-bc29-44da-8351-53d7ca7f093b"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "SOS_EDITOR_R2",
+      "bucket_name": "sos-editor-videos"
+    }
+  ],
+
+  "vars": {
+    "ENVIRONMENT": "production",
+    "PUBLIC_R2_URL_PREFIX": "https://cdn.soseditor.com.br"
+  },
+
+  "build": {
+    "command": "echo ok"
+  }
+}
