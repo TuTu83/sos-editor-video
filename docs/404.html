@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="0; url=/" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SOS Editor — Redirecionando...</title>
+    <script>
+      // SPA fallback: tenta redirecionar para /#/<path> (se for rota SPA como /admin)
+      (function () {
+        try {
+          var path = window.location.pathname + window.location.search + window.location.hash;
+          // Se for admin, mantém admin no #
+          if (path.indexOf('/admin') === 0) {
+            window.location.replace('/admin/index.html' + window.location.search + window.location.hash);
+            return;
+          }
+          if (path.indexOf('/video') === 0) {
+            // mantém na rota /video/<id> (não mexe — tem página estática própria)
+            return;
+          }
+          window.location.replace('/#' + path.replace(/^\//,''));
+        } catch (e) { window.location.replace('/'); }
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecionando para o SOS Editor... <a href="/">Clique aqui</a>.</p>
+  </body>
+</html>
